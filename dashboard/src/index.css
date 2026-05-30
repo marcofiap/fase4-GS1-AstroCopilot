@@ -39,13 +39,9 @@ body {
 .grid {
   display: grid; gap: 18px;
   grid-template-columns: 2fr 1fr;
-  grid-template-areas: "telemetry chat" "vision chat";
 }
-.grid > section:nth-child(1) { grid-area: telemetry; }
-.grid > section:nth-child(2) { grid-area: chat; }
-.grid > section:nth-child(3) { grid-area: vision; }
 @media (max-width: 900px) {
-  .grid { grid-template-columns: 1fr; grid-template-areas: "telemetry" "chat" "vision"; }
+  .grid { grid-template-columns: 1fr; }
 }
 
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
