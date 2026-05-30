@@ -60,6 +60,19 @@ body {
 .metric-value small { font-size: 12px; color: var(--muted); }
 .risk-badge { display: inline-block; margin-top: 6px; padding: 4px 12px; border-radius: 999px; color: #04111f; font-weight: 700; font-size: 13px; }
 
+.crew-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+@media (max-width: 700px) { .crew-grid { grid-template-columns: 1fr; } }
+.crew-card { background: #0a1024; border: 1px solid var(--border); border-left-width: 3px; border-radius: 10px; padding: 10px 12px; }
+.crew-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.crew-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.crew-id { flex: 1; line-height: 1.2; }
+.crew-id strong { display: block; font-size: 13px; }
+.crew-id small { color: var(--muted); font-size: 11px; }
+.crew-vitals { display: flex; justify-content: space-between; }
+.crew-vitals span { font-size: 18px; font-weight: 600; }
+.crew-vitals small { font-size: 11px; color: var(--muted); font-weight: 400; }
+.chart-cap { text-align: center; color: var(--muted); font-size: 11px; margin: 6px 0 0; }
+
 .chat { display: flex; flex-direction: column; min-height: 420px; }
 .chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
 .msg { padding: 8px 12px; border-radius: 10px; max-width: 90%; }

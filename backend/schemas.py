@@ -37,6 +37,7 @@ class VisionResponse(BaseModel):
 
 
 class Telemetry(BaseModel):
+    crew_id: str = Field("cmdr", description="Identificador do tripulante (cmdr, eng, med)")
     hr: float = Field(..., description="Frequência cardíaca (bpm)")
     spo2: float = Field(..., description="Saturação de oxigênio (%)")
     temp: float = Field(..., description="Temperatura corporal (°C)")
@@ -46,4 +47,5 @@ class Telemetry(BaseModel):
 
 class TelemetryAck(BaseModel):
     status: str
+    crew_id: str
     risk_level: str

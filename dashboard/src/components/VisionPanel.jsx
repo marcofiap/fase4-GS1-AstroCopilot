@@ -23,7 +23,7 @@ export default function VisionPanel() {
 
   return (
     <section className="card">
-      <header className="card-head"><h2>📷 Visão — Análise de Painel</h2></header>
+      <header className="card-head"><h2>Visão — Análise de Painel</h2></header>
 
       <label className="upload">
         <input type="file" accept="image/*" onChange={onFile} hidden />

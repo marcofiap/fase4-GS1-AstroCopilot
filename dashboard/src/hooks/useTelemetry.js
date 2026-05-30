@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { WS_URL } from '../api'
 
-// Conecta ao WebSocket /ws/telemetry do backend e mantém o histórico recente.
+// Conecta ao WebSocket /ws/telemetry e mantém:
+//  - crew:    estado atual de cada tripulante (array)
+//  - history: linhas {time, [crew_id]: hr} para o gráfico multi-linha
 export function useTelemetry(maxPoints = 30) {
-  const [latest, setLatest] = useState(null)
+  const [crew, setCrew] = useState([])
   const [history, setHistory] = useState([])
   const [connected, setConnected] = useState(false)
   const wsRef = useRef(null)
@@ -16,14 +18,15 @@ export function useTelemetry(maxPoints = 30) {
     ws.onclose = () => setConnected(false)
     ws.onerror = () => setConnected(false)
     ws.onmessage = (e) => {
-      const d = JSON.parse(e.data)
-      const point = { ...d, time: new Date(d.ts).toLocaleTimeString() }
-      setLatest(point)
-      setHistory((prev) => [...prev.slice(-(maxPoints - 1)), point])
+      const frame = JSON.parse(e.data) // { ts, crew: [...] }
+      setCrew(frame.crew)
+      const row = { time: new Date(frame.ts).toLocaleTimeString() }
+      frame.crew.forEach((c) => { row[c.id] = c.hr })
+      setHistory((prev) => [...prev.slice(-(maxPoints - 1)), row])
     }
 
     return () => ws.close()
   }, [maxPoints])
 
-  return { latest, history, connected }
+  return { crew, history, connected }
 }

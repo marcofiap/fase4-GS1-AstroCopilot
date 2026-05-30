@@ -27,7 +27,7 @@ export default function ChatPanel() {
 
   return (
     <section className="card chat">
-      <header className="card-head"><h2>🧠 Copiloto (RAG)</h2></header>
+      <header className="card-head"><h2>Copiloto (RAG)</h2></header>
 
       <div className="chat-log">
         {messages.map((m, i) => (

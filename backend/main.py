@@ -5,6 +5,9 @@ API FastAPI que integra todas as frentes do projeto. Por enquanto responde com
 *mocks*, o que permite que Frentes 1–4 e o dashboard trabalhem em paralelo desde
 o primeiro dia. Cada ponto de integração está marcado com `TODO [Frente N]`.
 
+Monitora uma TRIPULAÇÃO de 3 astronautas (ver CREW), cada um com telemetria
+independente.
+
 Como rodar:
     pip install -r requirements.txt
     uvicorn main:app --reload
@@ -16,7 +19,7 @@ import asyncio
 import random
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from schemas import (
@@ -32,7 +35,7 @@ from schemas import (
 app = FastAPI(
     title="AstroCopilot API",
     description="Orquestrador da POC AstroCopilot — GS 2026.1 FIAP",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 # CORS liberado em desenvolvimento (dashboard React+Vite roda em :5173)
@@ -44,19 +47,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Estado em memória: última leitura de telemetria recebida do ESP32
-_last_telemetry: dict = {
-    "hr": 78.0,
-    "spo2": 98.0,
-    "temp": 36.6,
-    "accel": 0.1,
-    "risk_level": "normal",
-    "ts": datetime.now(timezone.utc).isoformat(),
+# --------------------------------------------------------------------------- #
+#  Tripulação monitorada
+# --------------------------------------------------------------------------- #
+CREW = {
+    "cmdr": {"name": "Cmdr. Ana Lima", "role": "Comandante", "base_hr": 72},
+    "eng": {"name": "Eng. Bruno Sá", "role": "Engenheiro de Voo", "base_hr": 80},
+    "med": {"name": "Dra. Clara Reis", "role": "Oficial Médica", "base_hr": 76},
 }
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+# Estado em memória: última leitura por tripulante (inicia em valores de repouso)
+_crew_state: dict[str, dict] = {
+    cid: {
+        "id": cid,
+        "name": info["name"],
+        "role": info["role"],
+        "hr": float(info["base_hr"]),
+        "spo2": 98.0,
+        "temp": 36.6,
+        "accel": 0.1,
+        "risk_level": "normal",
+        "ts": _now(),
+    }
+    for cid, info in CREW.items()
+}
 
 
 def classify_risk(hr: float, spo2: float, temp: float) -> str:
@@ -72,12 +91,36 @@ def classify_risk(hr: float, spo2: float, temp: float) -> str:
     return "normal"
 
 
+def _simulate_step(state: dict) -> dict:
+    """Gera a próxima leitura simulada de um tripulante (variação suave em torno
+    do último valor recebido). Usado enquanto não há ESP32 real enviando dados."""
+    hr = round(state["hr"] + random.uniform(-3, 3), 1)
+    spo2 = round(min(100.0, state["spo2"] + random.uniform(-1, 1)), 1)
+    temp = round(state["temp"] + random.uniform(-0.1, 0.1), 1)
+    return {
+        "id": state["id"],
+        "name": state["name"],
+        "role": state["role"],
+        "hr": hr,
+        "spo2": spo2,
+        "temp": temp,
+        "risk_level": classify_risk(hr, spo2, temp),
+        "ts": _now(),
+    }
+
+
 # --------------------------------------------------------------------------- #
 #  Health
 # --------------------------------------------------------------------------- #
 @app.get("/", response_model=HealthResponse)
 def health() -> HealthResponse:
-    return HealthResponse(status="online", service="AstroCopilot", version="0.1.0")
+    return HealthResponse(status="online", service="AstroCopilot", version="0.2.0")
+
+
+@app.get("/api/crew")
+def list_crew() -> dict:
+    """Lista a tripulação monitorada e o estado atual de cada um."""
+    return {"crew": list(_crew_state.values())}
 
 
 # --------------------------------------------------------------------------- #
@@ -136,41 +179,38 @@ async def vision(image: UploadFile = File(...)) -> VisionResponse:
 
 
 # --------------------------------------------------------------------------- #
-#  Telemetria do ESP32  (Frente 4)
+#  Telemetria do ESP32  (Frente 4) — agora por tripulante
 # --------------------------------------------------------------------------- #
 @app.post("/api/telemetry", response_model=TelemetryAck)
 def telemetry(t: Telemetry) -> TelemetryAck:
-    """Recebe leitura do wearable ESP32, classifica risco e guarda o estado."""
+    """Recebe leitura do wearable ESP32 de um tripulante, classifica e guarda."""
+    if t.crew_id not in _crew_state:
+        raise HTTPException(status_code=404, detail=f"Tripulante '{t.crew_id}' não existe")
     risk = classify_risk(t.hr, t.spo2, t.temp)
-    _last_telemetry.update(
+    _crew_state[t.crew_id].update(
         hr=t.hr, spo2=t.spo2, temp=t.temp, accel=t.accel,
         risk_level=risk, ts=t.ts or _now(),
     )
-    return TelemetryAck(status="ok", risk_level=risk)
+    return TelemetryAck(status="ok", crew_id=t.crew_id, risk_level=risk)
 
 
 @app.websocket("/ws/telemetry")
 async def ws_telemetry(ws: WebSocket) -> None:
-    """Stream de telemetria em tempo real para o dashboard (1 Hz).
+    """Stream de telemetria de TODA a tripulação em tempo real (1 Hz).
 
-    Se ainda não houver ESP32 enviando dados, simula leituras para que a
-    Frente 5 desenvolva o dashboard imediatamente.
+    Envia um quadro `{ ts, crew: [ {id, name, role, hr, spo2, temp, risk_level}, ... ] }`.
+    Simula leituras enquanto não há ESP32 real conectado.
     """
     await ws.accept()
     try:
         while True:
-            # Simula pequena variação enquanto não há hardware real conectado
-            sim_hr = round(_last_telemetry["hr"] + random.uniform(-3, 3), 1)
-            sim_spo2 = round(_last_telemetry["spo2"] + random.uniform(-1, 1), 1)
-            sim_temp = round(_last_telemetry["temp"] + random.uniform(-0.1, 0.1), 1)
-            payload = {
-                "hr": sim_hr,
-                "spo2": sim_spo2,
-                "temp": sim_temp,
-                "risk_level": classify_risk(sim_hr, sim_spo2, sim_temp),
-                "ts": _now(),
-            }
-            await ws.send_json(payload)
+            crew_frame = []
+            for cid, state in _crew_state.items():
+                step = _simulate_step(state)
+                # mantém o estado "andando" para a simulação ser contínua
+                _crew_state[cid].update(hr=step["hr"], spo2=step["spo2"], temp=step["temp"])
+                crew_frame.append(step)
+            await ws.send_json({"ts": _now(), "crew": crew_frame})
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         return
