@@ -99,6 +99,13 @@ npm run dev                                              # http://localhost:5173
 
 > Use **Chrome ou Edge** para a entrada/saída de voz do Copiloto (Web Speech API).
 
+### Banco de dados
+
+Nenhuma configuração necessária: um **SQLite** é criado automaticamente no primeiro
+start em `backend/data/astrocopilot.db`, guardando o histórico de **alertas** e a
+**trilha de auditoria** do agente. O arquivo não é versionado (cada um gera o seu);
+no Docker, persiste no volume `backend-data`. Para zerar, basta apagá-lo.
+
 Cada frente tem instruções específicas no `README.md` da sua pasta.
 
 ## Links de entrega
