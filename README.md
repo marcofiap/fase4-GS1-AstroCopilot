@@ -8,15 +8,15 @@
 
 ---
 
-## 👥 Integrantes
+## 👥 Integrantes — Grupo 57
 
-| Nome | RM | Frente |
-|------|----|--------|
-| Marco Assumpcao | RM_____ | Frente 5 — Backend / Dashboard / DevOps |
-| _Nome 2_ | RM_____ | Frente 1 — Agente LLM + RAG + Scraping |
-| _Nome 3_ | RM_____ | Frente 2 — NLP & Voz |
-| _Nome 4_ | RM_____ | Frente 3 — Visão Computacional |
-| _Nome 5_ | RM_____ | Frente 4 — IoT ESP32 + Edge + ML |
+| Integrante | GitHub | Frente (sugerida) |
+|------------|--------|-------------------|
+| Felipe Sabino da Silva | [@FelipeSabinoTMRS](https://github.com/FelipeSabinoTMRS) | Frente 1 — Agente LLM + RAG + Scraping |
+| Juan Felipe Voltolini | [@juanvoltolini-rm562890](https://github.com/juanvoltolini-rm562890) | Frente 2 — NLP & Voz |
+| Luiz Henrique Ribeiro de Oliveira | [@Luiz-FIAP](https://github.com/Luiz-FIAP) | Frente 3 — Visão Computacional |
+| Marco Aurelio Eberhardt Assumpção | [@marcofiap](https://github.com/marcofiap) | Frente 5 — Backend / Dashboard / DevOps |
+| Paulo Henrique Senise | [@PauloSenise](https://github.com/PauloSenise) | Frente 4 — IoT ESP32 + Edge + ML |
 
 ---
 
