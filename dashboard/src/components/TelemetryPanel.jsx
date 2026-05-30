@@ -1,5 +1,6 @@
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
+  LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts'
 
 const PALETTE = ['#38bdf8', '#f59e0b', '#a78bfa', '#34d399', '#f472b6']
@@ -36,28 +37,56 @@ function CrewCard({ c, color }) {
   )
 }
 
-function CrewChart({ crew, history, suffix, caption }) {
+function CrewChart({ crew, history, suffix, caption, variant = 'line' }) {
+  const isArea = variant === 'area'
+  const Chart = isArea ? AreaChart : LineChart
   return (
     <div className="chart">
       <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={history}>
+        <Chart data={history}>
+          <defs>
+            {isArea && crew.map((c, i) => {
+              const color = PALETTE[i % PALETTE.length]
+              return (
+                <linearGradient key={c.id} id={`grad-${c.id}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.5} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0.04} />
+                </linearGradient>
+              )
+            })}
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e2a44" />
           <XAxis dataKey="time" tick={{ fill: '#7c8db5', fontSize: 11 }} minTickGap={40} />
           <YAxis tick={{ fill: '#7c8db5', fontSize: 11 }} domain={['auto', 'auto']} />
           <Tooltip contentStyle={{ background: '#0b1226', border: '1px solid #1e2a44' }} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          {crew.map((c, i) => (
-            <Line
-              key={c.id}
-              type="monotone"
-              dataKey={`${c.id}${suffix}`}
-              name={c.name}
-              stroke={PALETTE[i % PALETTE.length]}
-              dot={false}
-              isAnimationActive={false}
-            />
-          ))}
-        </LineChart>
+          {crew.map((c, i) => {
+            const color = PALETTE[i % PALETTE.length]
+            const key = `${c.id}${suffix}`
+            return isArea ? (
+              <Area
+                key={c.id}
+                type="monotone"
+                dataKey={key}
+                name={c.name}
+                stroke={color}
+                strokeWidth={2}
+                fill={`url(#grad-${c.id})`}
+                isAnimationActive={false}
+              />
+            ) : (
+              <Line
+                key={c.id}
+                type="monotone"
+                dataKey={key}
+                name={c.name}
+                stroke={color}
+                dot={false}
+                isAnimationActive={false}
+              />
+            )
+          })}
+        </Chart>
       </ResponsiveContainer>
       <p className="chart-cap">{caption}</p>
     </div>
@@ -80,8 +109,8 @@ export default function TelemetryPanel({ crew, history, connected }) {
         ))}
       </div>
 
-      <CrewChart crew={crew} history={history} suffix="" caption="Frequência cardíaca (bpm) por tripulante" />
-      <CrewChart crew={crew} history={history} suffix="_rad" caption="Radiação (µSv/h) por tripulante" />
+      <CrewChart crew={crew} history={history} suffix="" variant="line" caption="Frequência cardíaca (bpm) por tripulante" />
+      <CrewChart crew={crew} history={history} suffix="_rad" variant="area" caption="Radiação (µSv/h) por tripulante" />
     </section>
   )
 }
