@@ -11,8 +11,8 @@ export default function ChatPanel() {
   const [ttsOn, setTtsOn] = useState(true)
 
   const {
-    listening, awake, sttSupported, ttsSupported,
-    listen, stopListening, startWakeWord, stopWakeWord, speak, cancelSpeak,
+    awake, sttSupported, ttsSupported,
+    startWakeWord, stopWakeWord, speak, cancelSpeak,
   } = useSpeech()
 
   async function send(raw) {
@@ -35,11 +35,6 @@ export default function ChatPanel() {
   function onSubmit(e) {
     e.preventDefault()
     send(input)
-  }
-
-  function onMic() {
-    if (listening) { stopListening(); return }
-    listen((text) => { setInput(text); send(text) }) // transcreve e já envia
   }
 
   function toggleWake() {
@@ -104,20 +99,10 @@ export default function ChatPanel() {
       </div>
 
       <form className="chat-input" onSubmit={onSubmit}>
-        {sttSupported && (
-          <button
-            type="button"
-            className={`icon-btn mic ${listening ? 'rec' : ''}`}
-            onClick={onMic}
-            title="Falar uma pergunta"
-          >
-            {listening ? '● Ouvindo' : 'Falar'}
-          </button>
-        )}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={listening ? 'Ouvindo…' : 'Ex: procedimento em caso de despressurização?'}
+          placeholder="Ex: procedimento em caso de despressurização?"
         />
         <button type="submit" disabled={loading}>Enviar</button>
       </form>
