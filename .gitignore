@@ -1,0 +1,41 @@
+# ----- Tooling local -----
+.claude/
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ----- Segredos / ambiente -----
+.env
+*.env
+!*.env.example
+
+# ----- Modelos / dados pesados (não versionar) -----
+*.pt
+*.pth
+*.onnx
+*.h5
+*.pkl
+*.bin
+vision/models/*
+!vision/models/.gitkeep
+agent-rag/vectorstore/*
+!agent-rag/vectorstore/.gitkeep
+
+# ----- Node / Frontend -----
+node_modules/
+dist/
+.vite/
+*.local
+
+# ----- Sistema operacional / IDE -----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

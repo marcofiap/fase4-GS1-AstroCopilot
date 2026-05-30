@@ -1,0 +1,92 @@
+# 🚀 AstroCopilot — Copiloto Conversacional para Missões Espaciais
+
+> **Global Solution 2026.1 — FIAP | 2º ano de Inteligência Artificial (2TIAO)**
+> Prova de Conceito (POC) integrando IA Generativa, RAG, Visão Computacional, NLP/Voz, IoT (ESP32) e Machine Learning.
+
+<!-- Para concorrer ao pódio, descomente a linha abaixo e diga "QUERO CONCORRER" no início do vídeo -->
+<!-- **QUERO CONCORRER** -->
+
+---
+
+## 👥 Integrantes
+
+| Nome | RM | Frente |
+|------|----|--------|
+| Marco Assumpcao | RM_____ | Frente 5 — Backend / Dashboard / DevOps |
+| _Nome 2_ | RM_____ | Frente 1 — Agente LLM + RAG + Scraping |
+| _Nome 3_ | RM_____ | Frente 2 — NLP & Voz |
+| _Nome 4_ | RM_____ | Frente 3 — Visão Computacional |
+| _Nome 5_ | RM_____ | Frente 4 — IoT ESP32 + Edge + ML |
+
+---
+
+## 🎯 Proposta
+
+**Pergunta do desafio:** _Como tecnologias avançadas de IA, automação e computação podem impulsionar soluções inovadoras para a nova economia espacial?_
+
+O **AstroCopilot** é um copiloto de bordo para tripulações espaciais:
+
+- 🎙️ **Voz** — o astronauta fala; o sistema entende (STT) e responde por voz (TTS).
+- 🧠 **RAG + LLM** — consulta manuais técnicos reais (NASA/ESA) e responde com fonte citada.
+- 📷 **Visão** — o astronauta mostra um painel/componente pela câmera; o copiloto identifica e lê (OCR).
+- ⌚ **IoT + ML** — wearable ESP32 monitora sinais vitais em tempo real; um modelo de ML classifica risco.
+- 📊 **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo, chat e alertas.
+
+## 🧩 Arquitetura
+
+```
+🎙️ Voz   📷 Câmera   ⌚ ESP32(LoRa/BLE/WiFi)
+   │         │            │
+[STT/TTS] [Visão CV]  [Edge + ML risco]
+   └────────┬┴──────────┬─┘
+            ▼            ▼
+     BACKEND FastAPI (REST + WebSocket)
+            │                 │
+   [Agente LLM + RAG]   [Dashboard React+Vite]
+   [Vector DB / NASA]
+```
+
+Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
+
+## 🗂️ Estrutura do repositório
+
+| Pasta | Frente | Conteúdo |
+|-------|--------|----------|
+| [`backend/`](backend/) | 5 | API FastAPI que orquestra todos os módulos (REST + WebSocket) |
+| [`dashboard/`](dashboard/) | 5 | Centro de controle web (React + Vite) |
+| [`agent-rag/`](agent-rag/) | 1 | Scraping de manuais + base vetorial + agente LLM/RAG |
+| [`voice-nlp/`](voice-nlp/) | 2 | Speech-to-Text, Text-to-Speech e detecção de intenção |
+| [`vision/`](vision/) | 3 | Detecção de componentes + OCR de painéis |
+| [`iot-esp32/`](iot-esp32/) | 4 | Firmware ESP32 (Wokwi) + Edge + modelo ML de risco |
+| [`docs/`](docs/) | — | Arquitetura, diagramas e PDF de entrega |
+
+## ⚙️ Tecnologias
+
+`Python` · `FastAPI` · `WebSocket` · `LangChain/LlamaIndex` · `ChromaDB` · `OpenAI/Anthropic API` ·
+`Whisper` · `gTTS` · `PyTorch` · `YOLOv8/CLIP` · `Tesseract` · `ESP32` · `Wokwi` · `LoRa/BLE` ·
+`scikit-learn` · `React` · `Vite` · `TailwindCSS` · `Recharts` · `GitHub Actions` · `Docker`
+
+## ▶️ Como executar (início rápido)
+
+O backend já roda com **respostas mock**, permitindo que todas as frentes trabalhem em paralelo.
+
+```bash
+# 1) Backend (Frente 5) — destrava todas as demais
+cd backend
+python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+# Documentação interativa: http://localhost:8000/docs
+```
+
+Cada frente tem instruções específicas no `README.md` da sua pasta.
+
+## 🔗 Links de entrega
+
+- 📄 PDF da entrega: `docs/GS-AstroCopilot.pdf`
+- 🎬 Vídeo (YouTube — Não listado): _adicionar link_
+- 💻 Repositório: _adicionar link_
+
+## 📜 Licença
+
+Creative Commons Attribution 4.0 International (CC BY 4.0).
