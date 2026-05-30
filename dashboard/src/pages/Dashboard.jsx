@@ -13,6 +13,7 @@ export default function Dashboard() {
         <div className="topbar-actions">
           <Link className="btn" to="/visao">Visão (imagem)</Link>
           <Link className="btn" to="/alertas">Log de Alertas</Link>
+          <Link className="btn" to="/auditoria">Auditoria</Link>
           <span className={`dot ${connected ? 'on' : 'off'}`}>
             backend {connected ? 'conectado' : 'offline'}
           </span>

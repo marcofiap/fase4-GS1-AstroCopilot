@@ -136,4 +136,14 @@ body {
 .vision-result code { background: #0a1024; padding: 2px 6px; border-radius: 4px; }
 .muted { color: var(--muted); }
 
+.audit-intro { font-size: 13px; margin: 0 0 14px; }
+.audit-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.audit-row { background: #0a1024; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.audit-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.audit-channel { font-size: 10px; font-weight: 700; color: #04111f; padding: 2px 8px; border-radius: 999px; }
+.audit-time { font-size: 11px; color: var(--muted); }
+.audit-q, .audit-a { margin: 4px 0; font-size: 14px; line-height: 1.4; }
+.audit-q b, .audit-a b { color: var(--accent); }
+.audit-sources { margin: 6px 0 0; padding-left: 16px; font-size: 12px; color: var(--muted); }
+
 .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }

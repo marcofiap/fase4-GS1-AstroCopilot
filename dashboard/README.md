@@ -23,12 +23,14 @@ npm run dev                 # http://localhost:5173
 - `/` — **Painel principal**: telemetria ao vivo + Copiloto (RAG).
 - `/visao` — **Visão**: upload de imagem para análise (`/api/vision`).
 - `/alertas` — **Log de Alertas**: histórico completo de escalonamentos de risco.
+- `/auditoria` — **Trilha de Auditoria**: decisões do Copiloto (governança de IA — `/api/audit`).
 
 ## Arquivos
 - `src/App.jsx` — rotas da aplicação
 - `src/pages/Dashboard.jsx` — painel principal (telemetria + copiloto)
 - `src/pages/VisionPage.jsx` — página de análise de imagem
 - `src/pages/AlertsPage.jsx` — página de log de alertas
+- `src/pages/AuditPage.jsx` — página da trilha de auditoria do agente
 - `src/hooks/useTelemetry.js` — conexão WebSocket `/ws/telemetry`
 - `src/hooks/useSpeech.js` — voz no navegador (STT/TTS + wake word "Astra")
 - `src/components/TelemetryPanel.jsx` — cards da tripulação + gráficos (Recharts: linha de FC e área de radiação)

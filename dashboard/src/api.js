@@ -30,3 +30,10 @@ export async function fetchAlerts(limit = 20) {
   if (!r.ok) throw new Error('Falha ao buscar alertas')
   return r.json()
 }
+
+// GET /api/audit -> { audit[], total }  (trilha de decisões do agente)
+export async function fetchAudit(limit = 50) {
+  const r = await fetch(`${API}/api/audit?limit=${limit}`)
+  if (!r.ok) throw new Error('Falha ao buscar a trilha de auditoria')
+  return r.json()
+}
