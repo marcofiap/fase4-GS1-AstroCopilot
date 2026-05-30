@@ -1,4 +1,4 @@
-# 🚀 AstroCopilot — Copiloto Conversacional para Missões Espaciais
+# AstroCopilot — Copiloto Conversacional para Missões Espaciais
 
 > **Global Solution 2026.1 — FIAP | 2º ano de Inteligência Artificial (2TIAO)**
 > Prova de Conceito (POC) integrando IA Generativa, RAG, Visão Computacional, NLP/Voz, IoT (ESP32) e Machine Learning.
@@ -8,7 +8,7 @@
 
 ---
 
-## 👥 Integrantes — Grupo 57
+## Integrantes — Grupo 42
 
 | Integrante | GitHub | Frente (sugerida) |
 |------------|--------|-------------------|
@@ -20,22 +20,22 @@
 
 ---
 
-## 🎯 Proposta
+## Proposta
 
 **Pergunta do desafio:** _Como tecnologias avançadas de IA, automação e computação podem impulsionar soluções inovadoras para a nova economia espacial?_
 
 O **AstroCopilot** é um copiloto de bordo para tripulações espaciais:
 
-- 🎙️ **Voz** — o astronauta fala; o sistema entende (STT) e responde por voz (TTS).
-- 🧠 **RAG + LLM** — consulta manuais técnicos reais (NASA/ESA) e responde com fonte citada.
-- 📷 **Visão** — o astronauta mostra um painel/componente pela câmera; o copiloto identifica e lê (OCR).
-- ⌚ **IoT + ML** — wearable ESP32 monitora sinais vitais em tempo real; um modelo de ML classifica risco.
-- 📊 **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo, chat e alertas.
+- **Voz** — o astronauta fala; o sistema entende (STT) e responde por voz (TTS).
+- **RAG + LLM** — consulta manuais técnicos reais (NASA/ESA) e responde com fonte citada.
+- **Visão** — o astronauta mostra um painel/componente pela câmera; o copiloto identifica e lê (OCR).
+- **IoT + ML** — wearable ESP32 monitora sinais vitais em tempo real; um modelo de ML classifica risco.
+- **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo, chat e alertas.
 
-## 🧩 Arquitetura
+## Arquitetura
 
 ```
-🎙️ Voz   📷 Câmera   ⌚ ESP32(LoRa/BLE/WiFi)
+  Voz     Câmera     ESP32(LoRa/BLE/WiFi)
    │         │            │
 [STT/TTS] [Visão CV]  [Edge + ML risco]
    └────────┬┴──────────┬─┘
@@ -48,7 +48,7 @@ O **AstroCopilot** é um copiloto de bordo para tripulações espaciais:
 
 Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
 
-## 🗂️ Estrutura do repositório
+## Estrutura do repositório
 
 | Pasta | Frente | Conteúdo |
 |-------|--------|----------|
@@ -60,13 +60,13 @@ Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
 | [`iot-esp32/`](iot-esp32/) | 4 | Firmware ESP32 (Wokwi) + Edge + modelo ML de risco |
 | [`docs/`](docs/) | — | Arquitetura, diagramas e PDF de entrega |
 
-## ⚙️ Tecnologias
+## Tecnologias
 
 `Python` · `FastAPI` · `WebSocket` · `LangChain/LlamaIndex` · `ChromaDB` · `OpenAI/Anthropic API` ·
 `Whisper` · `gTTS` · `PyTorch` · `YOLOv8/CLIP` · `Tesseract` · `ESP32` · `Wokwi` · `LoRa/BLE` ·
 `scikit-learn` · `React` · `Vite` · `TailwindCSS` · `Recharts` · `GitHub Actions` · `Docker`
 
-## ▶️ Como executar (início rápido)
+## Como executar (início rápido)
 
 O backend já roda com **respostas mock**, permitindo que todas as frentes trabalhem em paralelo.
 
@@ -81,12 +81,12 @@ uvicorn main:app --reload
 
 Cada frente tem instruções específicas no `README.md` da sua pasta.
 
-## 🔗 Links de entrega
+## Links de entrega
 
-- 📄 PDF da entrega: `docs/GS-AstroCopilot.pdf`
-- 🎬 Vídeo (YouTube — Não listado): _adicionar link_
-- 💻 Repositório: _adicionar link_
+- PDF da entrega: `docs/GS-AstroCopilot.pdf`
+- Vídeo (YouTube — Não listado): _adicionar link_
+- Repositório: _adicionar link_
 
-## 📜 Licença
+## Licença
 
 Creative Commons Attribution 4.0 International (CC BY 4.0).
