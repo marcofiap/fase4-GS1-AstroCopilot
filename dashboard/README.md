@@ -5,17 +5,27 @@ Dashboard web (**React + Vite**) — telemetria ao vivo, chat com o copiloto e a
 ## Responsável
 **Frente 5** — Backend / Dashboard / DevOps.
 
-## Como criar (a fazer)
+## Como rodar (já scaffoldado)
+
+O app React+Vite já está montado e cabeado no backend. Basta:
 
 ```bash
 cd dashboard
-npm create vite@latest . -- --template react
+cp .env.example .env        # opcional (já tem fallback para localhost)
 npm install
-npm install recharts
-npm run dev          # http://localhost:5173
+npm run dev                 # http://localhost:5173
 ```
 
-Configure a URL da API em `.env` (`VITE_API_URL=http://localhost:8000`).
+> Pré-requisito: o **backend** precisa estar rodando (`uvicorn main:app --reload`).
+> A telemetria aparece ao vivo via WebSocket; o chat e a análise de imagem usam REST.
+
+## Arquivos
+- `src/App.jsx` — layout do centro de controle + banner de alerta de risco
+- `src/hooks/useTelemetry.js` — conexão WebSocket `/ws/telemetry`
+- `src/components/TelemetryPanel.jsx` — métricas + gráfico (Recharts)
+- `src/components/ChatPanel.jsx` — chat com o agente (`/api/agent/query`)
+- `src/components/VisionPanel.jsx` — upload de imagem (`/api/vision`)
+- `src/api.js` — cliente da API
 
 ## Componentes previstos
 - **Telemetria ao vivo** (WebSocket `/ws/telemetry` + Recharts).
