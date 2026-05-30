@@ -70,14 +70,34 @@ Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
 
 O backend já roda com **respostas mock**, permitindo que todas as frentes trabalhem em paralelo.
 
+### Opção 1 — Docker (recomendado: sobe tudo com um comando)
+
 ```bash
-# 1) Backend (Frente 5) — destrava todas as demais
+docker compose up --build
+#   Dashboard: http://localhost:5173
+#   Backend:   http://localhost:8000/docs
+```
+
+Para parar: `docker compose down`. O SQLite (alertas + auditoria) persiste no volume `backend-data`.
+
+### Opção 2 — Modo desenvolvimento (hot-reload, 2 terminais)
+
+```bash
+# Terminal 1 — Backend (Frente 5), destrava todas as demais
 cd backend
 python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash
 pip install -r requirements.txt
-uvicorn main:app --reload
-# Documentação interativa: http://localhost:8000/docs
+uvicorn main:app --reload                                # http://localhost:8000/docs
 ```
+
+```bash
+# Terminal 2 — Dashboard (React + Vite)
+cd dashboard
+npm install
+npm run dev                                              # http://localhost:5173
+```
+
+> Use **Chrome ou Edge** para a entrada/saída de voz do Copiloto (Web Speech API).
 
 Cada frente tem instruções específicas no `README.md` da sua pasta.
 
