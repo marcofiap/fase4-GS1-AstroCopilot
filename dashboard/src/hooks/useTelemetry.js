@@ -21,7 +21,10 @@ export function useTelemetry(maxPoints = 30) {
       const frame = JSON.parse(e.data) // { ts, crew: [...] }
       setCrew(frame.crew)
       const row = { time: new Date(frame.ts).toLocaleTimeString() }
-      frame.crew.forEach((c) => { row[c.id] = c.hr })
+      frame.crew.forEach((c) => {
+        row[c.id] = c.hr          // série de batimentos
+        row[`${c.id}_rad`] = c.radiation // série de radiação
+      })
       setHistory((prev) => [...prev.slice(-(maxPoints - 1)), row])
     }
 

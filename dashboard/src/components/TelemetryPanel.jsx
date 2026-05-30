@@ -36,6 +36,34 @@ function CrewCard({ c, color }) {
   )
 }
 
+function CrewChart({ crew, history, suffix, caption }) {
+  return (
+    <div className="chart">
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={history}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e2a44" />
+          <XAxis dataKey="time" tick={{ fill: '#7c8db5', fontSize: 11 }} minTickGap={40} />
+          <YAxis tick={{ fill: '#7c8db5', fontSize: 11 }} domain={['auto', 'auto']} />
+          <Tooltip contentStyle={{ background: '#0b1226', border: '1px solid #1e2a44' }} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {crew.map((c, i) => (
+            <Line
+              key={c.id}
+              type="monotone"
+              dataKey={`${c.id}${suffix}`}
+              name={c.name}
+              stroke={PALETTE[i % PALETTE.length]}
+              dot={false}
+              isAnimationActive={false}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      <p className="chart-cap">{caption}</p>
+    </div>
+  )
+}
+
 export default function TelemetryPanel({ crew, history, connected }) {
   return (
     <section className="card">
@@ -52,29 +80,8 @@ export default function TelemetryPanel({ crew, history, connected }) {
         ))}
       </div>
 
-      <div className="chart">
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e2a44" />
-            <XAxis dataKey="time" tick={{ fill: '#7c8db5', fontSize: 11 }} minTickGap={40} />
-            <YAxis tick={{ fill: '#7c8db5', fontSize: 11 }} domain={['auto', 'auto']} />
-            <Tooltip contentStyle={{ background: '#0b1226', border: '1px solid #1e2a44' }} />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            {crew.map((c, i) => (
-              <Line
-                key={c.id}
-                type="monotone"
-                dataKey={c.id}
-                name={c.name}
-                stroke={PALETTE[i % PALETTE.length]}
-                dot={false}
-                isAnimationActive={false}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-        <p className="chart-cap">Frequência cardíaca (bpm) por tripulante</p>
-      </div>
+      <CrewChart crew={crew} history={history} suffix="" caption="Frequência cardíaca (bpm) por tripulante" />
+      <CrewChart crew={crew} history={history} suffix="_rad" caption="Radiação (µSv/h) por tripulante" />
     </section>
   )
 }
