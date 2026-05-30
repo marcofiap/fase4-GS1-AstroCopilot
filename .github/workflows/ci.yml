@@ -23,15 +23,14 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Instala dependências
-        run: pip install -r requirements.txt
+      - name: Instala dependências (com dev/testes)
+        run: pip install -r requirements-dev.txt
 
       - name: Checa sintaxe (compila todos os módulos)
         run: python -m compileall -q .
 
-      - name: Smoke test (importa a app e valida classify_risk)
-        run: |
-          python -c "import main; assert main.classify_risk(hr=160, spo2=85, temp=39) == 'risco'; assert main.classify_risk(hr=72, spo2=98, temp=36.5) == 'normal'; print('OK')"
+      - name: Testes (pytest)
+        run: python -m pytest
 
   dashboard:
     name: Dashboard (React + Vite)

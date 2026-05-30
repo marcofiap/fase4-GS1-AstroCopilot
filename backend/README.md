@@ -65,14 +65,26 @@ docker compose up --build
 
 Para parar: `docker compose down`.
 
+## Testes
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest
+```
+
+Cobrem o classificador de risco (`classify_risk`) e os endpoints REST (health,
+crew, agente + auditoria, telemetria com/sem escalada de alerta, 404 e visão).
+Cada teste roda contra um SQLite temporário isolado (fixture `client`).
+
 ## CI (GitHub Actions)
 
 O workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) roda a cada push/PR na `main`:
-compila o backend + smoke test do `classify_risk`, e faz o build de produção do dashboard.
+compila o backend + **pytest**, e faz o build de produção do dashboard.
 
 ## MVP vs. Stretch
 
 - **MVP:** endpoints respondendo + WebSocket de telemetria + dashboard consumindo. ✅
 - **DevOps:** `docker compose` subindo tudo ✅ · CI no GitHub Actions ✅
 - **Governança:** persistência dos alertas (SQLite) ✅ · trilha de auditoria das decisões do agente ✅
-- **Stretch:** testes (pytest) · troca dos mocks pela lógica real das Frentes 1–4.
+- **Qualidade:** testes pytest (20) rodando no CI ✅
+- **Stretch:** troca dos mocks pela lógica real das Frentes 1–4.

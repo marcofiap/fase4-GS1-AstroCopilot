@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
@@ -34,10 +35,18 @@ from schemas import (
     VoiceResponse,
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Inicialização da app: garante que as tabelas do SQLite existam."""
+    db.init_db()
+    yield
+
+
 app = FastAPI(
     title="AstroCopilot API",
     description="Orquestrador da POC AstroCopilot — GS 2026.1 FIAP",
     version="0.3.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -47,12 +56,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    """Garante que as tabelas do SQLite existam antes de atender requisições."""
-    db.init_db()
 
 # --------------------------------------------------------------------------- #
 #  Tripulação monitorada
