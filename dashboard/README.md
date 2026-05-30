@@ -1,6 +1,6 @@
 # 📊 dashboard/ — Centro de Controle (Frente 5)
 
-Dashboard web (**React + Vite**) — telemetria ao vivo, chat com o copiloto e alertas.
+Dashboard web (**React + Vite**) — telemetria ao vivo, copiloto por voz/texto, análise de imagem e log de alertas.
 
 ## Responsável
 **Frente 5** — Backend / Dashboard / DevOps.
@@ -19,19 +19,29 @@ npm run dev                 # http://localhost:5173
 > Pré-requisito: o **backend** precisa estar rodando (`uvicorn main:app --reload`).
 > A telemetria aparece ao vivo via WebSocket; o chat e a análise de imagem usam REST.
 
+## Páginas (react-router-dom)
+- `/` — **Painel principal**: telemetria ao vivo + Copiloto (RAG).
+- `/visao` — **Visão**: upload de imagem para análise (`/api/vision`).
+- `/alertas` — **Log de Alertas**: histórico completo de escalonamentos de risco.
+
 ## Arquivos
-- `src/App.jsx` — layout do centro de controle + banner de alerta de risco
+- `src/App.jsx` — rotas da aplicação
+- `src/pages/Dashboard.jsx` — painel principal (telemetria + copiloto)
+- `src/pages/VisionPage.jsx` — página de análise de imagem
+- `src/pages/AlertsPage.jsx` — página de log de alertas
 - `src/hooks/useTelemetry.js` — conexão WebSocket `/ws/telemetry`
-- `src/components/TelemetryPanel.jsx` — métricas + gráfico (Recharts)
-- `src/components/ChatPanel.jsx` — chat com o agente (`/api/agent/query`)
+- `src/hooks/useSpeech.js` — voz no navegador (STT/TTS + wake word "Astra")
+- `src/components/TelemetryPanel.jsx` — cards da tripulação + gráficos (Recharts: linha de FC e área de radiação)
+- `src/components/ChatPanel.jsx` — chat com o agente (`/api/agent/query`) + entrada/saída de voz
 - `src/components/VisionPanel.jsx` — upload de imagem (`/api/vision`)
+- `src/components/AlertLogPanel.jsx` — lista de alertas (`/api/alerts`)
 - `src/api.js` — cliente da API
 
-## Componentes previstos
-- **Telemetria ao vivo** (WebSocket `/ws/telemetry` + Recharts).
-- **Chat** com o copiloto (`POST /api/agent/query`).
-- **Upload de imagem** para análise (`POST /api/vision`).
-- **Painel de alertas** (destaque quando `risk_level != normal`).
+## Funcionalidades
+- **Telemetria ao vivo** de 3 tripulantes (WebSocket `/ws/telemetry` + Recharts: FC, SpO₂, temperatura, respiração, radiação, bateria).
+- **Copiloto (RAG)** por texto **ou voz**: ative dizendo a wake word **"Astra"** (escuta contínua) e ouça a resposta em áudio — acessível para tripulantes com dificuldade visual. Usa a Web Speech API do navegador (Chrome/Edge), com fallback para texto.
+- **Análise de imagem** de painéis/instrumentos (`POST /api/vision`).
+- **Log de alertas** com registro a cada escalonamento de risco.
 
 ## MVP vs. Stretch
 - **MVP:** telemetria ao vivo + chat integrados ao backend.

@@ -30,7 +30,7 @@ O **AstroCopilot** é um copiloto de bordo para tripulações espaciais:
 - **RAG + LLM** — consulta manuais técnicos reais (NASA/ESA) e responde com fonte citada.
 - **Visão** — o astronauta mostra um painel/componente pela câmera; o copiloto identifica e lê (OCR).
 - **IoT + ML** — wearable ESP32 monitora sinais vitais em tempo real; um modelo de ML classifica risco.
-- **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo, chat e alertas.
+- **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo de 3 tripulantes, copiloto por voz (wake word **"Astra"**) ou texto, análise de imagem e log de alertas.
 
 ## Arquitetura
 
