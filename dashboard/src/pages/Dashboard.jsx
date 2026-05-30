@@ -4,16 +4,8 @@ import TelemetryPanel from '../components/TelemetryPanel'
 import ChatPanel from '../components/ChatPanel'
 import VisionPanel from '../components/VisionPanel'
 
-const RANK = { normal: 0, fadiga: 1, risco: 2 }
-
 export default function Dashboard() {
   const { crew, history, connected } = useTelemetry()
-
-  const inAlert = crew.filter((c) => c.risk_level && c.risk_level !== 'normal')
-  const worst = inAlert.reduce(
-    (acc, c) => (RANK[c.risk_level] > RANK[acc] ? c.risk_level : acc),
-    'normal',
-  )
 
   return (
     <div className="app">
@@ -26,13 +18,6 @@ export default function Dashboard() {
           </span>
         </div>
       </header>
-
-      {inAlert.length > 0 && (
-        <div className={`alert ${worst}`}>
-          ⚠️ ALERTA: {inAlert.map((c) => c.name).join(', ')}
-          {inAlert.length > 1 ? ' em estado crítico' : ` em estado ${worst.toUpperCase()}`}
-        </div>
-      )}
 
       <main className="grid">
         <TelemetryPanel crew={crew} history={history} connected={connected} />
