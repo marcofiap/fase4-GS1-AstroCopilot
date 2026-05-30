@@ -9,6 +9,9 @@ services:
     container_name: astrocopilot-backend
     ports:
       - "8000:8000"
+    # Persiste o SQLite (alertas + auditoria) fora do container
+    volumes:
+      - backend-data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
@@ -29,3 +32,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  backend-data:

@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+import db
 from schemas import (
     AgentQuery,
     AgentResponse,
@@ -47,6 +48,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+def _startup() -> None:
+    """Garante que as tabelas do SQLite existam antes de atender requisições."""
+    db.init_db()
+
 # --------------------------------------------------------------------------- #
 #  Tripulação monitorada
 # --------------------------------------------------------------------------- #
@@ -57,10 +64,6 @@ CREW = {
 }
 
 RANK = {"normal": 0, "fadiga": 1, "risco": 2}
-MAX_ALERTS = 100
-
-# Log de alertas (mais recente ao final)
-_alerts: list[dict] = []
 
 
 def _now() -> str:
@@ -102,7 +105,7 @@ def classify_risk(hr: float, spo2: float, temp: float,
 
 
 def _log_alert(state: dict, new_risk: str) -> None:
-    _alerts.append({
+    alert = {
         "ts": _now(),
         "crew_id": state["id"],
         "name": state["name"],
@@ -112,9 +115,8 @@ def _log_alert(state: dict, new_risk: str) -> None:
             f"(HR {state['hr']} bpm · SpO₂ {state['spo2']}% · "
             f"Temp {state['temp']}°C · Rad {state['radiation']} µSv/h)"
         ),
-    })
-    if len(_alerts) > MAX_ALERTS:
-        del _alerts[:-MAX_ALERTS]
+    }
+    db.insert_alert(alert)  # persiste no SQLite (sobrevive a reinícios)
 
 
 def apply_vitals(cid: str, *, hr, spo2, temp, accel, resp, radiation, battery, ts=None) -> dict:
@@ -163,27 +165,39 @@ def list_crew() -> dict:
 
 @app.get("/api/alerts")
 def list_alerts(limit: int = 20) -> dict:
-    """Retorna os alertas mais recentes (escaladas de risco), do mais novo ao mais antigo."""
-    return {"alerts": list(reversed(_alerts))[:limit], "total": len(_alerts)}
+    """Retorna os alertas mais recentes (escaladas de risco), do mais novo ao mais antigo.
+    Persistido em SQLite — sobrevive a reinícios do backend."""
+    return {"alerts": db.get_alerts(limit), "total": db.count_alerts()}
 
 
 # --------------------------------------------------------------------------- #
 #  Agente LLM + RAG  (Frente 1)
 # --------------------------------------------------------------------------- #
 @app.post("/api/agent/query", response_model=AgentResponse)
-def agent_query(q: AgentQuery) -> AgentResponse:
+def agent_query(q: AgentQuery, channel: str = "text") -> AgentResponse:
     """Consulta o agente conversacional.
+
+    Toda decisão é registrada na trilha de auditoria (governança de IA):
+    pergunta, resposta, fontes citadas e timestamp ficam no SQLite.
 
     TODO [Frente 1]: chamar a cadeia RAG (agent-rag/agent.py) que recupera
     trechos do ChromaDB e gera a resposta com o LLM + citação de fontes.
     """
-    return AgentResponse(
+    response = AgentResponse(
         answer=(
             f"[MOCK] Resposta do copiloto para: '{q.text}'. "
             "Substituir pela cadeia RAG da Frente 1."
         ),
         sources=["NASA-STD-3001 (mock)", "ESA Crew Manual (mock)"],
     )
+    db.insert_audit(q.text, response.answer, response.sources, channel=channel)
+    return response
+
+
+@app.get("/api/audit")
+def list_audit(limit: int = 50) -> dict:
+    """Trilha de auditoria das decisões do agente (governança), do mais novo ao mais antigo."""
+    return {"audit": db.get_audit(limit), "total": db.count_audit()}
 
 
 # --------------------------------------------------------------------------- #
@@ -197,7 +211,7 @@ async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
     """
     _ = await audio.read()  # consome o upload (mock)
     transcript = "[MOCK] transcrição do áudio recebido"
-    answer = agent_query(AgentQuery(text=transcript))
+    answer = agent_query(AgentQuery(text=transcript), channel="voice")
     return VoiceResponse(
         transcript=transcript,
         answer_text=answer.answer,

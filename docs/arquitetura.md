@@ -36,8 +36,9 @@ Todas as frentes programam contra estes contratos desde a Semana 1 (o backend j�
 |--------|------|---------|-------|
 | GET | `/` | — | `{ status, service, version }` |
 | GET | `/api/crew` | — | `{ crew[] }` (estado atual dos 3 tripulantes) |
-| GET | `/api/alerts` | `?limit=20` | `{ alerts[], total }` (escaladas de risco) |
-| POST | `/api/agent/query` | `{ text }` | `{ answer, sources[] }` |
+| GET | `/api/alerts` | `?limit=20` | `{ alerts[], total }` (escaladas de risco — SQLite) |
+| GET | `/api/audit` | `?limit=50` | `{ audit[], total }` (trilha de decisões do agente — SQLite) |
+| POST | `/api/agent/query` | `{ text }` `?channel=text\|voice` | `{ answer, sources[] }` (registra auditoria) |
 | POST | `/api/voice` | `multipart: audio` | `{ transcript, answer_text, answer_audio_url }` |
 | POST | `/api/vision` | `multipart: image` | `{ objects[], ocr_text, description }` |
 | POST | `/api/telemetry` | `{ crew_id, hr, spo2, temp, accel, resp?, radiation?, battery?, ts? }` | `{ status, crew_id, risk_level }` |
@@ -46,6 +47,8 @@ Todas as frentes programam contra estes contratos desde a Semana 1 (o backend j�
 **Sensores por tripulante:** batimentos (bpm), SpO₂ (%), temperatura (°C), aceleração (g),
 respiração (rpm), radiação (µSv/h) e bateria do wearable (%).
 **Log de alertas:** registrado quando um tripulante *escala* de risco (normal→fadiga→risco).
+**Persistência (SQLite):** `alerts` e `audit` ficam em `backend/data/astrocopilot.db`
+(volume Docker `backend-data`), sobrevivendo a reinícios — base da governança de IA.
 
 - Timestamps em **ISO-8601**.
 - Erros no formato `{ "detail": "<mensagem>" }`.

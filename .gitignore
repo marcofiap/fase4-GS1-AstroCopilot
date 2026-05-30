@@ -16,6 +16,11 @@ env/
 *.env
 !*.env.example
 
+# ----- Banco de dados local (SQLite) -----
+backend/data/
+*.db
+*.sqlite3
+
 # ----- Modelos / dados pesados (não versionar) -----
 *.pt
 *.pth

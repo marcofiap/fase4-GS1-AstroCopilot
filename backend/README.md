@@ -24,11 +24,23 @@ uvicorn main:app --reload
 | Método | Rota | Frente que pluga a lógica real |
 |--------|------|-------------------------------|
 | GET | `/` | — (health) |
+| GET | `/api/crew` | 4 (estado atual da tripulação) |
+| GET | `/api/alerts` | 5 (histórico de risco — SQLite) |
+| GET | `/api/audit` | 5 (trilha de auditoria do agente — SQLite) |
 | POST | `/api/agent/query` | 1 (RAG) |
 | POST | `/api/voice` | 2 (STT/TTS) |
 | POST | `/api/vision` | 3 (CV/OCR) |
 | POST | `/api/telemetry` | 4 (ESP32) |
 | WS | `/ws/telemetry` | 4 (stream tempo real) |
+
+### Persistência & Governança (`db.py`)
+
+Um SQLite (`backend/data/astrocopilot.db`, fora do versionamento) guarda:
+- **`alerts`** — cada escalada de risco da tripulação (sobrevive a reinícios).
+- **`audit`** — trilha de auditoria das decisões do agente: pergunta, resposta,
+  fontes citadas, canal (`text`/`voice`) e timestamp. Requisito de governança de IA.
+
+No Docker, um volume `backend-data` mantém o banco entre recriações do container.
 
 Os contratos detalhados estão em [`../docs/arquitetura.md`](../docs/arquitetura.md).
 Cada integração está marcada no código com `TODO [Frente N]`.
@@ -62,4 +74,5 @@ compila o backend + smoke test do `classify_risk`, e faz o build de produção d
 
 - **MVP:** endpoints respondendo + WebSocket de telemetria + dashboard consumindo. ✅
 - **DevOps:** `docker compose` subindo tudo ✅ · CI no GitHub Actions ✅
-- **Stretch:** persistência dos alertas (SQLite) · trilha de auditoria das decisões do agente.
+- **Governança:** persistência dos alertas (SQLite) ✅ · trilha de auditoria das decisões do agente ✅
+- **Stretch:** testes (pytest) · troca dos mocks pela lógica real das Frentes 1–4.
