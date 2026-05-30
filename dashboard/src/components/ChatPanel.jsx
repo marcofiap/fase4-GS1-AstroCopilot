@@ -4,14 +4,16 @@ import { useSpeech } from '../hooks/useSpeech'
 
 export default function ChatPanel() {
   const [messages, setMessages] = useState([
-    { role: 'system', text: 'Copiloto online. Pergunte por texto ou use o microfone.' },
+    { role: 'system', text: 'Copiloto online. Diga "Astra" para ativar por voz, ou pergunte por texto.' },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [ttsOn, setTtsOn] = useState(true)
 
-  const { listening, sttSupported, ttsSupported, listen, stopListening, speak, cancelSpeak } =
-    useSpeech()
+  const {
+    listening, awake, sttSupported, ttsSupported,
+    listen, stopListening, startWakeWord, stopWakeWord, speak, cancelSpeak,
+  } = useSpeech()
 
   async function send(raw) {
     const text = (raw ?? '').trim()
@@ -40,6 +42,12 @@ export default function ChatPanel() {
     listen((text) => { setInput(text); send(text) }) // transcreve e já envia
   }
 
+  function toggleWake() {
+    if (awake) { stopWakeWord(); return }
+    // Escuta contínua: ao ouvir "Astra ...", envia o que vier depois.
+    startWakeWord((command) => { setInput(command); send(command) })
+  }
+
   function toggleTts() {
     setTtsOn((v) => {
       if (v) cancelSpeak() // desligando: interrompe fala atual
@@ -51,17 +59,35 @@ export default function ChatPanel() {
     <section className="card chat">
       <header className="card-head">
         <h2>Copiloto (RAG)</h2>
-        {ttsSupported && (
-          <button
-            type="button"
-            className={`icon-btn ${ttsOn ? 'on' : ''}`}
-            onClick={toggleTts}
-            title="Ler respostas em voz alta"
-          >
-            {ttsOn ? 'Voz: ON' : 'Voz: OFF'}
-          </button>
-        )}
+        <div className="head-actions">
+          {sttSupported && (
+            <button
+              type="button"
+              className={`icon-btn wake ${awake ? 'on' : ''}`}
+              onClick={toggleWake}
+              title='Ativação por voz: diga "Astra" para perguntar'
+            >
+              {awake ? 'Astra: ouvindo' : 'Astra: OFF'}
+            </button>
+          )}
+          {ttsSupported && (
+            <button
+              type="button"
+              className={`icon-btn ${ttsOn ? 'on' : ''}`}
+              onClick={toggleTts}
+              title="Ler respostas em voz alta"
+            >
+              {ttsOn ? 'Voz: ON' : 'Voz: OFF'}
+            </button>
+          )}
+        </div>
       </header>
+
+      {awake && (
+        <p className="wake-note">
+          🎙️ Diga <b>"Astra"</b> seguido da sua pergunta. Ex: <i>"Astra, procedimento em caso de despressurização?"</i>
+        </p>
+      )}
 
       <div className="chat-log">
         {messages.map((m, i) => (
@@ -83,7 +109,7 @@ export default function ChatPanel() {
             type="button"
             className={`icon-btn mic ${listening ? 'rec' : ''}`}
             onClick={onMic}
-            title="Falar"
+            title="Falar uma pergunta"
           >
             {listening ? '● Ouvindo' : 'Falar'}
           </button>
