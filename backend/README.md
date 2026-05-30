@@ -41,7 +41,25 @@ curl -X POST http://localhost:8000/api/agent/query -H "Content-Type: application
 curl -X POST http://localhost:8000/api/telemetry -H "Content-Type: application/json" -d '{"hr":150,"spo2":88,"temp":37.0,"accel":0.2}'
 ```
 
+## Rodar com Docker (stack completa)
+
+Da **raiz** do repositório, um único comando sobe backend + dashboard:
+
+```bash
+docker compose up --build
+#   Dashboard: http://localhost:5173
+#   Backend:   http://localhost:8000/docs
+```
+
+Para parar: `docker compose down`.
+
+## CI (GitHub Actions)
+
+O workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) roda a cada push/PR na `main`:
+compila o backend + smoke test do `classify_risk`, e faz o build de produção do dashboard.
+
 ## MVP vs. Stretch
 
-- **MVP:** endpoints respondendo + WebSocket de telemetria + dashboard consumindo.
-- **Stretch:** `docker compose` subindo tudo; trilha de auditoria das decisões do agente; CI no GitHub Actions.
+- **MVP:** endpoints respondendo + WebSocket de telemetria + dashboard consumindo. ✅
+- **DevOps:** `docker compose` subindo tudo ✅ · CI no GitHub Actions ✅
+- **Stretch:** persistência dos alertas (SQLite) · trilha de auditoria das decisões do agente.

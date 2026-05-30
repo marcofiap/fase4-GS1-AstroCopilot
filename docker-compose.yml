@@ -1,0 +1,31 @@
+# AstroCopilot — sobe backend + dashboard com um comando (Frente 5 / DevOps)
+# Uso:  docker compose up --build
+#   Dashboard: http://localhost:5173
+#   Backend:   http://localhost:8000/docs
+
+services:
+  backend:
+    build: ./backend
+    container_name: astrocopilot-backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  dashboard:
+    build:
+      context: ./dashboard
+      args:
+        # O navegador acessa o backend pelo host, então localhost funciona.
+        VITE_API_URL: http://localhost:8000
+        VITE_WS_URL: ws://localhost:8000
+    container_name: astrocopilot-dashboard
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
