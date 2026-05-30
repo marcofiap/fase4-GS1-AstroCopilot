@@ -23,3 +23,10 @@ export async function analyzeImage(file) {
   if (!r.ok) throw new Error('Falha na análise de imagem')
   return r.json()
 }
+
+// GET /api/alerts -> { alerts[], total }
+export async function fetchAlerts(limit = 20) {
+  const r = await fetch(`${API}/api/alerts?limit=${limit}`)
+  if (!r.ok) throw new Error('Falha ao buscar alertas')
+  return r.json()
+}

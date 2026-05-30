@@ -39,12 +39,15 @@ body {
 .grid {
   display: grid; gap: 18px;
   grid-template-columns: 2fr 1fr;
-  grid-template-areas: "telemetry chat" "vision chat";
+  grid-template-areas: "telemetry chat" "vision chat" "alerts alerts";
 }
 .grid > section:nth-child(1) { grid-area: telemetry; }
 .grid > section:nth-child(2) { grid-area: chat; }
 .grid > section:nth-child(3) { grid-area: vision; }
-@media (max-width: 900px) { .grid { grid-template-columns: 1fr; grid-template-areas: "telemetry" "chat" "vision"; } }
+.grid > section:nth-child(4) { grid-area: alerts; }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; grid-template-areas: "telemetry" "chat" "vision" "alerts"; }
+}
 
 .card {
   background: var(--panel); border: 1px solid var(--border);
@@ -71,7 +74,16 @@ body {
 .crew-vitals { display: flex; justify-content: space-between; }
 .crew-vitals span { font-size: 18px; font-weight: 600; }
 .crew-vitals small { font-size: 11px; color: var(--muted); font-weight: 400; }
+.crew-extra { display: flex; justify-content: space-between; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.crew-extra span { font-size: 11px; color: var(--muted); }
+.crew-extra b { color: var(--text); font-weight: 600; }
 .chart-cap { text-align: center; color: var(--muted); font-size: 11px; margin: 6px 0 0; }
+
+.alert-log { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.alert-row { display: flex; align-items: center; gap: 10px; background: #0a1024; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.alert-level { font-size: 10px; font-weight: 700; color: #04111f; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
+.alert-msg { flex: 1; font-size: 13px; }
+.alert-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
 
 .chat { display: flex; flex-direction: column; min-height: 420px; }
 .chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }

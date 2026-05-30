@@ -42,6 +42,9 @@ class Telemetry(BaseModel):
     spo2: float = Field(..., description="Saturação de oxigênio (%)")
     temp: float = Field(..., description="Temperatura corporal (°C)")
     accel: float = Field(..., description="Magnitude de aceleração (g)")
+    resp: Optional[float] = Field(None, description="Frequência respiratória (rpm)")
+    radiation: Optional[float] = Field(None, description="Dose de radiação (µSv/h)")
+    battery: Optional[float] = Field(None, description="Bateria do wearable (%)")
     ts: Optional[str] = Field(None, description="Timestamp ISO-8601")
 
 

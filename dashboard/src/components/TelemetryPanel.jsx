@@ -27,6 +27,11 @@ function CrewCard({ c, color }) {
         <span>{c.spo2}<small> %</small></span>
         <span>{c.temp}<small> °C</small></span>
       </div>
+      <div className="crew-extra">
+        <span>Resp <b>{c.resp}</b> rpm</span>
+        <span>Rad <b>{c.radiation}</b> µSv/h</span>
+        <span>Bat <b>{c.battery}</b>%</span>
+      </div>
     </div>
   )
 }

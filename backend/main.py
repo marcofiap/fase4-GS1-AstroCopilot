@@ -6,7 +6,8 @@ API FastAPI que integra todas as frentes do projeto. Por enquanto responde com
 o primeiro dia. Cada ponto de integração está marcado com `TODO [Frente N]`.
 
 Monitora uma TRIPULAÇÃO de 3 astronautas (ver CREW), cada um com telemetria
-independente.
+independente (batimentos, SpO2, temperatura, aceleração, respiração, radiação e
+bateria do wearable) e mantém um LOG DE ALERTAS quando há escalada de risco.
 
 Como rodar:
     pip install -r requirements.txt
@@ -35,10 +36,9 @@ from schemas import (
 app = FastAPI(
     title="AstroCopilot API",
     description="Orquestrador da POC AstroCopilot — GS 2026.1 FIAP",
-    version="0.2.0",
+    version="0.3.0",
 )
 
-# CORS liberado em desenvolvimento (dashboard React+Vite roda em :5173)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,10 +51,16 @@ app.add_middleware(
 #  Tripulação monitorada
 # --------------------------------------------------------------------------- #
 CREW = {
-    "cmdr": {"name": "Cmdr. Ana Lima", "role": "Comandante", "base_hr": 72},
-    "eng": {"name": "Eng. Bruno Sá", "role": "Engenheiro de Voo", "base_hr": 80},
-    "med": {"name": "Dra. Clara Reis", "role": "Oficial Médica", "base_hr": 76},
+    "cmdr": {"name": "Cmdr. Ana Lima", "role": "Comandante", "base_hr": 72, "battery": 100},
+    "eng": {"name": "Eng. Bruno Sá", "role": "Engenheiro de Voo", "base_hr": 80, "battery": 92},
+    "med": {"name": "Dra. Clara Reis", "role": "Oficial Médica", "base_hr": 76, "battery": 87},
 }
+
+RANK = {"normal": 0, "fadiga": 1, "risco": 2}
+MAX_ALERTS = 100
+
+# Log de alertas (mais recente ao final)
+_alerts: list[dict] = []
 
 
 def _now() -> str:
@@ -71,6 +77,9 @@ _crew_state: dict[str, dict] = {
         "spo2": 98.0,
         "temp": 36.6,
         "accel": 0.1,
+        "resp": 14.0,
+        "radiation": 0.2,
+        "battery": float(info["battery"]),
         "risk_level": "normal",
         "ts": _now(),
     }
@@ -78,49 +87,84 @@ _crew_state: dict[str, dict] = {
 }
 
 
-def classify_risk(hr: float, spo2: float, temp: float) -> str:
+def classify_risk(hr: float, spo2: float, temp: float,
+                  radiation: float = 0.0, resp: float = 14.0) -> str:
     """Classificador de risco — PLACEHOLDER baseado em regras.
 
     TODO [Frente 4]: substituir por modelo scikit-learn treinado
     (iot-esp32/ml-edge/model.pkl) carregado uma vez no startup.
     """
-    if spo2 < 90 or hr > 140 or temp > 38.5:
+    if spo2 < 90 or hr > 140 or temp > 38.5 or radiation > 5.0 or resp > 28:
         return "risco"
-    if spo2 < 94 or hr > 110 or temp > 37.8:
+    if spo2 < 94 or hr > 110 or temp > 37.8 or radiation > 1.0 or resp > 24 or resp < 8:
         return "fadiga"
     return "normal"
 
 
+def _log_alert(state: dict, new_risk: str) -> None:
+    _alerts.append({
+        "ts": _now(),
+        "crew_id": state["id"],
+        "name": state["name"],
+        "risk_level": new_risk,
+        "message": (
+            f"{state['name']} entrou em estado {new_risk.upper()} "
+            f"(HR {state['hr']} bpm · SpO₂ {state['spo2']}% · "
+            f"Temp {state['temp']}°C · Rad {state['radiation']} µSv/h)"
+        ),
+    })
+    if len(_alerts) > MAX_ALERTS:
+        del _alerts[:-MAX_ALERTS]
+
+
+def apply_vitals(cid: str, *, hr, spo2, temp, accel, resp, radiation, battery, ts=None) -> dict:
+    """Atualiza o estado de um tripulante, classifica o risco e registra alerta
+    quando há ESCALADA de severidade (edge-triggered). Retorna o snapshot."""
+    state = _crew_state[cid]
+    prev = state["risk_level"]
+    risk = classify_risk(hr, spo2, temp, radiation, resp)
+    state.update(
+        hr=hr, spo2=spo2, temp=temp, accel=accel, resp=resp,
+        radiation=radiation, battery=battery, risk_level=risk, ts=ts or _now(),
+    )
+    if RANK[risk] > RANK[prev]:
+        _log_alert(state, risk)
+    return state
+
+
 def _simulate_step(state: dict) -> dict:
     """Gera a próxima leitura simulada de um tripulante (variação suave em torno
-    do último valor recebido). Usado enquanto não há ESP32 real enviando dados."""
-    hr = round(state["hr"] + random.uniform(-3, 3), 1)
-    spo2 = round(min(100.0, state["spo2"] + random.uniform(-1, 1)), 1)
-    temp = round(state["temp"] + random.uniform(-0.1, 0.1), 1)
-    return {
-        "id": state["id"],
-        "name": state["name"],
-        "role": state["role"],
-        "hr": hr,
-        "spo2": spo2,
-        "temp": temp,
-        "risk_level": classify_risk(hr, spo2, temp),
-        "ts": _now(),
-    }
+    do último valor). Usado enquanto não há ESP32 real enviando dados."""
+    return apply_vitals(
+        state["id"],
+        hr=round(state["hr"] + random.uniform(-3, 3), 1),
+        spo2=round(min(100.0, state["spo2"] + random.uniform(-1, 1)), 1),
+        temp=round(state["temp"] + random.uniform(-0.1, 0.1), 1),
+        accel=round(abs(state["accel"] + random.uniform(-0.05, 0.05)), 2),
+        resp=round(state["resp"] + random.uniform(-1, 1), 1),
+        radiation=round(max(0.0, state["radiation"] + random.uniform(-0.05, 0.08)), 2),
+        battery=round(max(5.0, state["battery"] - random.uniform(0, 0.05)), 1),
+    )
 
 
 # --------------------------------------------------------------------------- #
-#  Health
+#  Health / Crew / Alerts
 # --------------------------------------------------------------------------- #
 @app.get("/", response_model=HealthResponse)
 def health() -> HealthResponse:
-    return HealthResponse(status="online", service="AstroCopilot", version="0.2.0")
+    return HealthResponse(status="online", service="AstroCopilot", version="0.3.0")
 
 
 @app.get("/api/crew")
 def list_crew() -> dict:
     """Lista a tripulação monitorada e o estado atual de cada um."""
     return {"crew": list(_crew_state.values())}
+
+
+@app.get("/api/alerts")
+def list_alerts(limit: int = 20) -> dict:
+    """Retorna os alertas mais recentes (escaladas de risco), do mais novo ao mais antigo."""
+    return {"alerts": list(reversed(_alerts))[:limit], "total": len(_alerts)}
 
 
 # --------------------------------------------------------------------------- #
@@ -179,37 +223,39 @@ async def vision(image: UploadFile = File(...)) -> VisionResponse:
 
 
 # --------------------------------------------------------------------------- #
-#  Telemetria do ESP32  (Frente 4) — agora por tripulante
+#  Telemetria do ESP32  (Frente 4) — por tripulante, com mais sensores
 # --------------------------------------------------------------------------- #
 @app.post("/api/telemetry", response_model=TelemetryAck)
 def telemetry(t: Telemetry) -> TelemetryAck:
-    """Recebe leitura do wearable ESP32 de um tripulante, classifica e guarda."""
+    """Recebe leitura do wearable ESP32 de um tripulante, classifica e guarda.
+
+    Campos opcionais (resp, radiation, battery) ausentes mantêm o valor atual.
+    """
     if t.crew_id not in _crew_state:
         raise HTTPException(status_code=404, detail=f"Tripulante '{t.crew_id}' não existe")
-    risk = classify_risk(t.hr, t.spo2, t.temp)
-    _crew_state[t.crew_id].update(
+    cur = _crew_state[t.crew_id]
+    state = apply_vitals(
+        t.crew_id,
         hr=t.hr, spo2=t.spo2, temp=t.temp, accel=t.accel,
-        risk_level=risk, ts=t.ts or _now(),
+        resp=t.resp if t.resp is not None else cur["resp"],
+        radiation=t.radiation if t.radiation is not None else cur["radiation"],
+        battery=t.battery if t.battery is not None else cur["battery"],
+        ts=t.ts,
     )
-    return TelemetryAck(status="ok", crew_id=t.crew_id, risk_level=risk)
+    return TelemetryAck(status="ok", crew_id=t.crew_id, risk_level=state["risk_level"])
 
 
 @app.websocket("/ws/telemetry")
 async def ws_telemetry(ws: WebSocket) -> None:
     """Stream de telemetria de TODA a tripulação em tempo real (1 Hz).
 
-    Envia um quadro `{ ts, crew: [ {id, name, role, hr, spo2, temp, risk_level}, ... ] }`.
-    Simula leituras enquanto não há ESP32 real conectado.
+    Envia `{ ts, crew: [ {id, name, role, hr, spo2, temp, resp, radiation,
+    battery, risk_level}, ... ] }`. Simula leituras enquanto não há ESP32 real.
     """
     await ws.accept()
     try:
         while True:
-            crew_frame = []
-            for cid, state in _crew_state.items():
-                step = _simulate_step(state)
-                # mantém o estado "andando" para a simulação ser contínua
-                _crew_state[cid].update(hr=step["hr"], spo2=step["spo2"], temp=step["temp"])
-                crew_frame.append(step)
+            crew_frame = [_simulate_step(state) for state in list(_crew_state.values())]
             await ws.send_json({"ts": _now(), "crew": crew_frame})
             await asyncio.sleep(1)
     except WebSocketDisconnect:

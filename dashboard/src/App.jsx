@@ -2,6 +2,7 @@ import { useTelemetry } from './hooks/useTelemetry'
 import TelemetryPanel from './components/TelemetryPanel'
 import ChatPanel from './components/ChatPanel'
 import VisionPanel from './components/VisionPanel'
+import AlertLogPanel from './components/AlertLogPanel'
 
 const RANK = { normal: 0, fadiga: 1, risco: 2 }
 
@@ -34,6 +35,7 @@ export default function App() {
         <TelemetryPanel crew={crew} history={history} connected={connected} />
         <ChatPanel />
         <VisionPanel />
+        <AlertLogPanel />
       </main>
 
       <footer className="foot">Grupo 42 · GS 2026.1 · FIAP — POC AstroCopilot</footer>
