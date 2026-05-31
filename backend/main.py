@@ -17,9 +17,12 @@ Como rodar:
 from __future__ import annotations
 
 import asyncio
+import os
 import random
+import sys
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +37,21 @@ from schemas import (
     VisionResponse,
     VoiceResponse,
 )
+
+# --------------------------------------------------------------------------- #
+#  Frente 1: cadeia RAG (agent-rag/agent.py)
+#  Import resiliente. Se as dependencias ou a base vetorial nao estiverem
+#  disponiveis, o endpoint /api/agent/query opera em modo limitado (ver abaixo).
+# --------------------------------------------------------------------------- #
+_RAG_DIR = os.getenv("AGENT_RAG_DIR") or str(Path(__file__).resolve().parent.parent / "agent-rag")
+if _RAG_DIR not in sys.path:
+    sys.path.insert(0, _RAG_DIR)
+try:
+    from agent import query as rag_query  # noqa: E402
+except Exception as exc:  # pragma: no cover - depende do ambiente
+    rag_query = None
+    print(f"[Frente 1] RAG indisponivel, usando modo limitado: {exc}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -178,21 +196,36 @@ def list_alerts(limit: int = 20) -> dict:
 # --------------------------------------------------------------------------- #
 @app.post("/api/agent/query", response_model=AgentResponse)
 def agent_query(q: AgentQuery, channel: str = "text") -> AgentResponse:
-    """Consulta o agente conversacional.
+    """Consulta o agente conversacional (Frente 1: RAG sobre manuais espaciais).
 
-    Toda decisão é registrada na trilha de auditoria (governança de IA):
-    pergunta, resposta, fontes citadas e timestamp ficam no SQLite.
+    A resposta vem da cadeia RAG (agent-rag/agent.py): recupera trechos no ChromaDB
+    e gera o texto com o LLM no Bedrock, citando as fontes. Toda decisão é registrada
+    na trilha de auditoria (governança de IA): pergunta, resposta, fontes e timestamp.
 
-    TODO [Frente 1]: chamar a cadeia RAG (agent-rag/agent.py) que recupera
-    trechos do ChromaDB e gera a resposta com o LLM + citação de fontes.
+    Se o RAG não estiver disponível (sem API key ou sem base vetorial), responde em
+    modo limitado para não derrubar o restante da aplicação.
     """
-    response = AgentResponse(
-        answer=(
-            f"[MOCK] Resposta do copiloto para: '{q.text}'. "
-            "Substituir pela cadeia RAG da Frente 1."
-        ),
-        sources=["NASA-STD-3001 (mock)", "ESA Crew Manual (mock)"],
-    )
+    if rag_query is not None:
+        try:
+            resultado = rag_query(q.text)
+            response = AgentResponse(
+                answer=resultado["answer"],
+                sources=resultado.get("sources") or ["(sem fonte citada)"],
+            )
+        except Exception as exc:
+            print(f"[Frente 1] falha na consulta RAG: {exc}")
+            response = AgentResponse(
+                answer=(
+                    "Base de conhecimento indisponível no momento. Verifique a API key "
+                    "do Bedrock e a base vetorial (rode o ingest em agent-rag/)."
+                ),
+                sources=["(RAG não configurado)"],
+            )
+    else:
+        response = AgentResponse(
+            answer=f"[MOCK] Resposta do copiloto para: '{q.text}'.",
+            sources=["NASA-STD-3001 (mock)"],
+        )
     db.insert_audit(q.text, response.answer, response.sources, channel=channel)
     return response
 

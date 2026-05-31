@@ -32,6 +32,7 @@ vision/models/*
 !vision/models/.gitkeep
 agent-rag/vectorstore/*
 !agent-rag/vectorstore/.gitkeep
+agent-rag/data/
 
 # ----- Node / Frontend -----
 node_modules/
