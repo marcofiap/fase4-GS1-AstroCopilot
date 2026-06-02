@@ -12,6 +12,14 @@ services:
     # Persiste o SQLite (alertas + auditoria) fora do container
     volumes:
       - backend-data:/app/data
+      # Frente 1: codigo do agente + base vetorial (gerada localmente pelo ingest)
+      - ./agent-rag:/app/agent-rag
+    environment:
+      - AGENT_RAG_DIR=/app/agent-rag
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK:-}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-us.anthropic.claude-haiku-4-5-20251001-v1:0}
+      - BEDROCK_EMBED_MODEL_ID=${BEDROCK_EMBED_MODEL_ID:-amazon.titan-embed-text-v2:0}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
