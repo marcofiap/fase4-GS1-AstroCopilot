@@ -14,8 +14,11 @@ services:
       - backend-data:/app/data
       # Frente 1: codigo do agente + base vetorial (gerada localmente pelo ingest)
       - ./agent-rag:/app/agent-rag
+      # Frente 2: pipeline de voz (STT/TTS)
+      - ./voice-nlp:/app/voice-nlp
     environment:
       - AGENT_RAG_DIR=/app/agent-rag
+      - VOICE_NLP_DIR=/app/voice-nlp
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK:-}
       - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-us.anthropic.claude-haiku-4-5-20251001-v1:0}

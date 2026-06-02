@@ -39,7 +39,7 @@ Todas as frentes programam contra estes contratos desde a Semana 1 (o backend j�
 | GET | `/api/alerts` | `?limit=20` | `{ alerts[], total }` (escaladas de risco — SQLite) |
 | GET | `/api/audit` | `?limit=50` | `{ audit[], total }` (trilha de decisões do agente — SQLite) |
 | POST | `/api/agent/query` | `{ text }` `?channel=text\|voice` | `{ answer, sources[] }` (registra auditoria) |
-| POST | `/api/voice` | `multipart: audio` | `{ transcript, answer_text, answer_audio_url }` |
+| POST | `/api/voice` | `multipart: audio` | `{ transcript, intent, answer_text, sources[], answer_audio_url }` |
 | POST | `/api/vision` | `multipart: image` | `{ objects[], ocr_text, description }` |
 | POST | `/api/telemetry` | `{ crew_id, hr, spo2, temp, accel, resp?, radiation?, battery?, ts? }` | `{ status, crew_id, risk_level }` |
 | WS | `/ws/telemetry` | — | stream `{ ts, crew:[{id,name,role,hr,spo2,temp,resp,radiation,battery,risk_level}] }` a cada 1s |
