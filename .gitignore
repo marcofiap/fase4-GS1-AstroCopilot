@@ -1,5 +1,6 @@
 # ----- Tooling local -----
 .claude/
+mcps/
 
 # ----- Python -----
 __pycache__/
