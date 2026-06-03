@@ -167,3 +167,21 @@ No `.env` da raiz:
 
 - **MVP:** ciclo voz → texto → resposta RAG → voz em PT-BR + intencao por regras.
 - **Stretch:** emocao/estresse na voz; ElevenLabs; modelo de intencao treinado.
+
+## Como Funciona a Infraestrutura (Local vs. Nuvem)
+
+Aqui está um resumo de quais serviços rodam localmente e quais dependem da internet:
+
+1. **Processamento do LLM (Texto ➔ Texto)**:
+   * **Serviço**: Claude 3.5 Haiku via AWS Bedrock.
+   * **Execução**: **Online** (consome tokens e requer a chave Bedrock).
+
+2. **Transcrição de Áudio (STT - Áudio ➔ Texto)**:
+   * **Serviço**: Whisper (`faster-whisper`).
+   * **Execução**: **100% Local** (roda na CPU/GPU do próprio computador do usuário, sem custos e sem enviar dados de voz à internet).
+
+3. **Resposta por Voz (TTS - Texto ➔ Áudio)**:
+   * **Provedor Padrão**: Microsoft Edge Neural TTS.
+     * **Execução**: **Online** (faz requisições às APIs públicas de voz do Microsoft Edge; é 100% gratuito e não consome chave).
+   * **Provedor Fallback**: Google TTS (`gtts`).
+     * **Execução**: **Online** (faz requisições web ao serviço do Google Tradutor; é gratuito, mas produz uma voz mais robótica/metalizada).
