@@ -1,0 +1,7 @@
+# Frente 1 - Agente LLM + RAG + Scraping
+# Use Python 3.12 ou 3.13 (mesma faixa do backend/Docker).
+strands-agents
+chromadb
+requests
+pypdf
+python-dotenv

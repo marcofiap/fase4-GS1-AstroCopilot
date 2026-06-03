@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import os
 import random
+import sys
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -27,6 +28,7 @@ from pathlib import Path
 import joblib
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 import db
 from schemas import (
@@ -38,6 +40,44 @@ from schemas import (
     VisionResponse,
     VoiceResponse,
 )
+
+# --------------------------------------------------------------------------- #
+#  Frente 2 (bootstrap): carrega raiz/.env antes do agent-rag/config.py
+# --------------------------------------------------------------------------- #
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_VOICE_DIR = os.getenv("VOICE_NLP_DIR") or str(_PROJECT_ROOT / "voice-nlp")
+if _VOICE_DIR not in sys.path:
+    sys.path.insert(0, _VOICE_DIR)
+import project_env  # noqa: E402
+
+# --------------------------------------------------------------------------- #
+#  Frente 1: cadeia RAG (agent-rag/agent.py)
+#  Import resiliente. Se as dependencias ou a base vetorial nao estiverem
+#  disponiveis, o endpoint /api/agent/query opera em modo limitado (ver abaixo).
+# --------------------------------------------------------------------------- #
+_RAG_DIR = os.getenv("AGENT_RAG_DIR") or str(_PROJECT_ROOT / "agent-rag")
+if _RAG_DIR not in sys.path:
+    sys.path.insert(0, _RAG_DIR)
+try:
+    from agent import query as rag_query  # noqa: E402
+    project_env.sync_agent_rag_config()  # config.py le BEDROCK_API_KEY so na importacao
+except Exception as exc:  # pragma: no cover - depende do ambiente
+    rag_query = None
+    print(f"[Frente 1] RAG indisponivel, usando modo limitado: {exc}")
+
+# --------------------------------------------------------------------------- #
+#  Frente 2: pipeline de voz (voice-nlp/pipeline.py)
+# --------------------------------------------------------------------------- #
+try:
+    import voice_config  # noqa: E402  # nao usar "config" (colide com agent-rag)
+    from pipeline import process_voice as voice_process  # noqa: E402
+
+    voice_config.TTS_DIR.mkdir(parents=True, exist_ok=True)
+except Exception as exc:  # pragma: no cover - depende do ambiente
+    voice_process = None
+    voice_config = None
+    print(f"[Frente 2] Voz indisponivel: {exc}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -64,6 +104,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if voice_config is not None:
+    app.mount(
+        "/media/voice",
+        StaticFiles(directory=str(voice_config.TTS_DIR)),
+        name="voice_media",
+    )
 
 # --------------------------------------------------------------------------- #
 #  Tripulação monitorada
@@ -250,21 +297,36 @@ def list_alerts(limit: int = 20) -> dict:
 # --------------------------------------------------------------------------- #
 @app.post("/api/agent/query", response_model=AgentResponse)
 def agent_query(q: AgentQuery, channel: str = "text") -> AgentResponse:
-    """Consulta o agente conversacional.
+    """Consulta o agente conversacional (Frente 1: RAG sobre manuais espaciais).
 
-    Toda decisão é registrada na trilha de auditoria (governança de IA):
-    pergunta, resposta, fontes citadas e timestamp ficam no SQLite.
+    A resposta vem da cadeia RAG (agent-rag/agent.py): recupera trechos no ChromaDB
+    e gera o texto com o LLM no Bedrock, citando as fontes. Toda decisão é registrada
+    na trilha de auditoria (governança de IA): pergunta, resposta, fontes e timestamp.
 
-    TODO [Frente 1]: chamar a cadeia RAG (agent-rag/agent.py) que recupera
-    trechos do ChromaDB e gera a resposta com o LLM + citação de fontes.
+    Se o RAG não estiver disponível (sem API key ou sem base vetorial), responde em
+    modo limitado para não derrubar o restante da aplicação.
     """
-    response = AgentResponse(
-        answer=(
-            f"[MOCK] Resposta do copiloto para: '{q.text}'. "
-            "Substituir pela cadeia RAG da Frente 1."
-        ),
-        sources=["NASA-STD-3001 (mock)", "ESA Crew Manual (mock)"],
-    )
+    if rag_query is not None:
+        try:
+            resultado = rag_query(q.text)
+            response = AgentResponse(
+                answer=resultado["answer"],
+                sources=resultado.get("sources") or ["(sem fonte citada)"],
+            )
+        except Exception as exc:
+            print(f"[Frente 1] falha na consulta RAG: {exc}")
+            response = AgentResponse(
+                answer=(
+                    "Base de conhecimento indisponível no momento. Verifique a API key "
+                    "do Bedrock e a base vetorial (rode o ingest em agent-rag/)."
+                ),
+                sources=["(RAG não configurado)"],
+            )
+    else:
+        response = AgentResponse(
+            answer=f"[MOCK] Resposta do copiloto para: '{q.text}'.",
+            sources=["NASA-STD-3001 (mock)"],
+        )
     db.insert_audit(q.text, response.answer, response.sources, channel=channel)
     return response
 
@@ -278,19 +340,52 @@ def list_audit(limit: int = 50) -> dict:
 # --------------------------------------------------------------------------- #
 #  Voz: STT + TTS  (Frente 2)
 # --------------------------------------------------------------------------- #
+def _ask_agent_for_voice(text: str) -> dict:
+    """Callback do pipeline de voz: mesma resposta do agente + auditoria channel=voice."""
+    resposta = agent_query(AgentQuery(text=text), channel="voice")
+    return {"answer": resposta.answer, "sources": resposta.sources}
+
+
 @app.post("/api/voice", response_model=VoiceResponse)
 async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
-    """Recebe áudio do tripulante, transcreve, consulta o agente e devolve fala.
+    """Recebe audio, transcreve (Whisper), consulta o agente RAG e sintetiza a resposta (gTTS)."""
+    dados = await audio.read()
+    if not dados:
+        raise HTTPException(status_code=400, detail="Arquivo de audio vazio.")
 
-    TODO [Frente 2]: Whisper (STT) -> /api/agent/query -> gTTS/ElevenLabs (TTS).
-    """
-    _ = await audio.read()  # consome o upload (mock)
-    transcript = "[MOCK] transcrição do áudio recebido"
-    answer = agent_query(AgentQuery(text=transcript), channel="voice")
+    if voice_process is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Pipeline de voz indisponivel. Instale: pip install -r voice-nlp/requirements.txt "
+                "e tenha ffmpeg no PATH."
+            ),
+        )
+
+    try:
+        resultado = await asyncio.to_thread(
+            voice_process,
+            dados,
+            audio.filename,
+            _ask_agent_for_voice,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        print(f"[Frente 2] falha no pipeline de voz: {exc}")
+        raise HTTPException(status_code=500, detail=f"Falha no processamento de voz: {exc}") from exc
+
+    audio_url = None
+    arquivo = resultado.get("answer_audio_file")
+    if arquivo is not None:
+        audio_url = f"/media/voice/{arquivo.name}"
+
     return VoiceResponse(
-        transcript=transcript,
-        answer_text=answer.answer,
-        answer_audio_url=None,  # Frente 2 retorna URL/arquivo do TTS
+        transcript=resultado["transcript"],
+        answer_text=resultado["answer_text"],
+        intent=resultado.get("intent"),
+        sources=resultado.get("sources") or [],
+        answer_audio_url=audio_url,
     )
 
 

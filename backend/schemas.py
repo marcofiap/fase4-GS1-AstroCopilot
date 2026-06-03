@@ -27,6 +27,10 @@ class AgentResponse(BaseModel):
 class VoiceResponse(BaseModel):
     transcript: str
     answer_text: str
+    intent: Optional[str] = Field(
+        None, description="Classificacao MVP: pergunta | status | emergencia"
+    )
+    sources: List[str] = []
     answer_audio_url: Optional[str] = None
 
 
