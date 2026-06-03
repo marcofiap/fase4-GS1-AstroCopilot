@@ -24,7 +24,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -35,6 +35,10 @@ from schemas import (
     HealthResponse,
     Telemetry,
     TelemetryAck,
+    TtsRequest,
+    TtsResponse,
+    UserRecordingMeta,
+    UserRecordingsListResponse,
     VisionResponse,
     VoiceResponse,
 )
@@ -57,10 +61,11 @@ _RAG_DIR = os.getenv("AGENT_RAG_DIR") or str(_PROJECT_ROOT / "agent-rag")
 if _RAG_DIR not in sys.path:
     sys.path.insert(0, _RAG_DIR)
 try:
-    from agent import query as rag_query  # noqa: E402
+    from agent import query as rag_query, register_crew_callback  # noqa: E402
     project_env.sync_agent_rag_config()  # config.py le BEDROCK_API_KEY so na importacao
 except Exception as exc:  # pragma: no cover - depende do ambiente
     rag_query = None
+    register_crew_callback = None
     print(f"[Frente 1] RAG indisponivel, usando modo limitado: {exc}")
 
 # --------------------------------------------------------------------------- #
@@ -68,19 +73,37 @@ except Exception as exc:  # pragma: no cover - depende do ambiente
 # --------------------------------------------------------------------------- #
 try:
     import voice_config  # noqa: E402  # nao usar "config" (colide com agent-rag)
+    import tts as voice_tts  # noqa: E402
     from pipeline import process_voice as voice_process  # noqa: E402
 
     voice_config.TTS_DIR.mkdir(parents=True, exist_ok=True)
 except Exception as exc:  # pragma: no cover - depende do ambiente
     voice_process = None
     voice_config = None
+    voice_tts = None
     print(f"[Frente 2] Voz indisponivel: {exc}")
+
+_VOICE_SAMPLES_DIR = _PROJECT_ROOT / "voice-nlp" / "samples"
+
+
+def _voice_media_url(arquivo: Path) -> str:
+    """Monta URL publica do MP3 sob /media/voice/."""
+    name = getattr(arquivo, "name", str(arquivo))
+    if voice_config is None:
+        return f"/media/voice/{name}"
+    try:
+        rel = arquivo.relative_to(voice_config.TTS_DIR).as_posix()
+    except (ValueError, AttributeError, TypeError):
+        rel = name
+    return f"/media/voice/{rel}"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Inicialização da app: garante que as tabelas do SQLite existam."""
     db.init_db()
+    if voice_tts is not None:
+        await asyncio.to_thread(voice_tts.warmup, "leo")
     yield
 
 
@@ -104,6 +127,22 @@ if voice_config is not None:
         "/media/voice",
         StaticFiles(directory=str(voice_config.TTS_DIR)),
         name="voice_media",
+    )
+
+if _VOICE_SAMPLES_DIR.is_dir():
+    app.mount(
+        "/media/samples",
+        StaticFiles(directory=str(_VOICE_SAMPLES_DIR)),
+        name="voice_samples",
+    )
+
+if voice_config is not None:
+    _USER_RECORDINGS_DIR = voice_config.CACHE_DIR / "user-recordings"
+    _USER_RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
+    app.mount(
+        "/media/user-recordings",
+        StaticFiles(directory=str(_USER_RECORDINGS_DIR)),
+        name="user_recordings_media",
     )
 
 # --------------------------------------------------------------------------- #
@@ -140,6 +179,13 @@ _crew_state: dict[str, dict] = {
     }
     for cid, info in CREW.items()
 }
+
+# Registra o callback de telemetria da tripulação no agente RAG, se disponível
+if register_crew_callback is not None:
+    try:
+        register_crew_callback(lambda: list(_crew_state.values()))
+    except Exception as exc:
+        print(f"[Frente 1] Não foi possível registrar o callback de telemetria: {exc}")
 
 
 def classify_risk(hr: float, spo2: float, temp: float,
@@ -238,7 +284,7 @@ def agent_query(q: AgentQuery, channel: str = "text") -> AgentResponse:
     """
     if rag_query is not None:
         try:
-            resultado = rag_query(q.text)
+            resultado = rag_query(q.text, channel=channel)
             response = AgentResponse(
                 answer=resultado["answer"],
                 sources=resultado.get("sources") or ["(sem fonte citada)"],
@@ -248,7 +294,7 @@ def agent_query(q: AgentQuery, channel: str = "text") -> AgentResponse:
             response = AgentResponse(
                 answer=(
                     "Base de conhecimento indisponível no momento. Verifique a API key "
-                    "do Bedrock e a base vetorial (rode o ingest em agent-rag/)."
+                    "do Bedrock and a base vetorial (rode o ingest em agent-rag/)."
                 ),
                 sources=["(RAG não configurado)"],
             )
@@ -257,8 +303,20 @@ def agent_query(q: AgentQuery, channel: str = "text") -> AgentResponse:
             answer=f"[MOCK] Resposta do copiloto para: '{q.text}'.",
             sources=["NASA-STD-3001 (mock)"],
         )
+    audio_url = None
+    if q.with_audio and voice_tts is not None and response.answer.strip():
+        try:
+            arquivo = voice_tts.synthesize(response.answer, q.voice_profile)
+            audio_url = _voice_media_url(arquivo)
+        except Exception as exc:
+            print(f"[Frente 2] TTS na resposta do agente falhou: {exc}")
+
     db.insert_audit(q.text, response.answer, response.sources, channel=channel)
-    return response
+    return AgentResponse(
+        answer=response.answer,
+        sources=response.sources,
+        answer_audio_url=audio_url,
+    )
 
 
 @app.get("/api/audit")
@@ -276,9 +334,51 @@ def _ask_agent_for_voice(text: str) -> dict:
     return {"answer": resposta.answer, "sources": resposta.sources}
 
 
+@app.get("/api/voice/recordings", response_model=UserRecordingsListResponse)
+def list_user_recordings() -> UserRecordingsListResponse:
+    """Lista gravacoes temporarias do piloto (usuario), reutilizaveis entre sessoes."""
+    if voice_config is None:
+        raise HTTPException(status_code=503, detail="Pipeline de voz indisponivel.")
+    from user_recordings import list_recordings  # noqa: E402
+
+    items = [UserRecordingMeta(**item) for item in list_recordings()]
+    return UserRecordingsListResponse(recordings=items)
+
+
+@app.post("/api/voice/recordings", response_model=UserRecordingMeta)
+async def save_user_recording(audio: UploadFile = File(...)) -> UserRecordingMeta:
+    """Salva gravacao do usuario como amostra temporaria do piloto."""
+    if voice_config is None:
+        raise HTTPException(status_code=503, detail="Pipeline de voz indisponivel.")
+    dados = await audio.read()
+    if not dados:
+        raise HTTPException(status_code=400, detail="Arquivo de audio vazio.")
+
+    from user_recordings import save_recording  # noqa: E402
+
+    try:
+        meta = await asyncio.to_thread(save_recording, dados, audio.filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return UserRecordingMeta(**meta)
+
+
+@app.get("/api/voice/profiles")
+def list_voice_profiles() -> dict:
+    """Lista perfis de voz do Astro (Eve, Ara, Leo, Rex, Sal)."""
+    if voice_tts is None:
+        raise HTTPException(status_code=503, detail="Pipeline de voz indisponivel.")
+    from voice_profiles import list_profiles  # noqa: E402
+
+    return {"profiles": list_profiles(), "default": "leo"}
+
+
 @app.post("/api/voice", response_model=VoiceResponse)
-async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
-    """Recebe audio, transcreve (Whisper), consulta o agente RAG e sintetiza a resposta (gTTS)."""
+async def voice(
+    audio: UploadFile = File(...),
+    voice_profile: str = Form("leo"),
+) -> VoiceResponse:
+    """Recebe audio, transcreve (Whisper), consulta o agente RAG e sintetiza a resposta (Edge TTS)."""
     dados = await audio.read()
     if not dados:
         raise HTTPException(status_code=400, detail="Arquivo de audio vazio.")
@@ -298,6 +398,7 @@ async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
             dados,
             audio.filename,
             _ask_agent_for_voice,
+            voice_profile,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -308,7 +409,7 @@ async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
     audio_url = None
     arquivo = resultado.get("answer_audio_file")
     if arquivo is not None:
-        audio_url = f"/media/voice/{arquivo.name}"
+        audio_url = _voice_media_url(arquivo)
 
     return VoiceResponse(
         transcript=resultado["transcript"],
@@ -317,6 +418,62 @@ async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
         sources=resultado.get("sources") or [],
         answer_audio_url=audio_url,
     )
+
+
+@app.get("/api/tts/ack")
+async def tts_ack(voice_profile: str = "leo") -> dict:
+    """URL do MP3 fixo 'Verificando' para o perfil (gera em cache se necessario)."""
+    if voice_tts is None:
+        raise HTTPException(status_code=503, detail="TTS indisponivel.")
+    try:
+        arquivo = await asyncio.to_thread(voice_tts.synthesize_ack, voice_profile)
+        return {"audio_url": _voice_media_url(arquivo), "phrase": "Verificando"}
+    except Exception as exc:
+        print(f"[Frente 2] falha no ack TTS: {exc}")
+        raise HTTPException(status_code=500, detail=f"Falha no ack de voz: {exc}") from exc
+
+
+@app.get("/api/tts/status")
+def tts_status() -> dict:
+    """Diagnostico: Edge TTS ativo e perfil masculino padrao."""
+    if voice_config is None or voice_tts is None:
+        return {"available": False, "provider": None, "detail": "Modulo voice-nlp nao carregado."}
+    from voice_profiles import resolve_profile  # noqa: E402
+
+    perfil = resolve_profile("leo")
+    return {
+        "available": True,
+        "provider": voice_config.TTS_PROVIDER,
+        "default_profile": perfil["id"],
+        "voice": perfil["voice"],
+        "rate": perfil["rate"],
+    }
+
+
+@app.post("/api/tts", response_model=TtsResponse)
+async def synthesize_answer(req: TtsRequest) -> TtsResponse:
+    """Sintetiza texto da resposta do agente em MP3 (Edge neural PT-BR, fallback gTTS)."""
+    texto = (req.text or "").strip()
+    if not texto:
+        raise HTTPException(status_code=400, detail="Texto vazio para sintese de voz.")
+
+    if voice_tts is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "TTS indisponivel. Instale: pip install -r voice-nlp/requirements.txt"
+            ),
+        )
+
+    try:
+        arquivo = await asyncio.to_thread(voice_tts.synthesize, texto, req.voice_profile)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        print(f"[Frente 2] falha no TTS: {exc}")
+        raise HTTPException(status_code=500, detail=f"Falha na sintese de voz: {exc}") from exc
+
+    return TtsResponse(audio_url=_voice_media_url(arquivo))
 
 
 # --------------------------------------------------------------------------- #

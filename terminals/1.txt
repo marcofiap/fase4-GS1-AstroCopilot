@@ -1,0 +1,499 @@
+---
+pid: 24212
+cwd: "C:\Users\felip\OneDrive\Documentos\Dev\ano2_fiap\fase4\fase4-GS1-AstroCopilot"
+command: "cd \"C:\\Users\\felip\\OneDrive\\Documentos\\Dev\\ano2_fiap\\fase4\\fase4-GS1-AstroCopilot\\backend\"; ..\\.venv\\Scripts\\uvicorn.exe main:app --reload --host 127.0.0.1 --port 8000"
+started_at: 2026-06-03T15:10:49.963Z
+running_for_ms: 5384997  
+---
+INFO:     Will watch for changes in these directories: ['C:\\Users\\felip\\OneDrive\\Documentos\\Dev\\ano2_fiap\\fase4\\fase4-GS1-AstroCopilot\\backend']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [15820] using WatchFiles
+INFO:     Started server process [336]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:62169 - "GET / HTTP/1.1" 200 OK
+
+Tool #1: buscar_documentos
+Deixe-me buscar informações mais específicas sobre procedimentos de emergência de despressurização.
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Deixe-me fazer uma busca mais direcionada para procedimentos de emergência.
+Tool #4: buscar_documentos
+
+Tool #5: buscar_documentos
+Lamento informar que **não encontrei nos manuais disponíveis procedimentos específicos e detalhados sobre como agir em caso de despressurização da cabine**.
+
+Os documentos recuperados abordam principalmente:
+- Sistemas de controle ambiental e revitalização de ar
+- Sistemas de pressurização e despressurização planejada (como em airlock para EVA)
+- Componentes técnicos de suporte à vida
+
+Porém, **não contêm protocolos de emergência operacional** para situações de despressurização acidental da cabine, como sequência de ações, uso de equipamento de proteção, ou procedimentos de isolamento de compartimentos.
+
+Para obter essas informações críticas de segurança, você deve consultar:
+- O Manual de Procedimentos de Emergência específico da sua nave
+- O Manual de Operações da Tripulação
+- Briefing de segurança pré-voo com o Comandante
+
+Recomendo que você acesse esses documentos imediatamente, pois são essenciais para sua segurança em órbita.INFO:     127.0.0.1:62171 - "POST /api/voice HTTP/1.1" 200 OK
+
+Tool #1: buscar_documentos
+Deixe-me buscar informações mais específicas sobre procedimentos de emergência.
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Desculpe, mas não encontrei nos manuais disponíveis procedimentos específicos e detalhados sobre como agir em caso de despressurização da cabine. 
+
+Os documentos recuperados tratam principalmente de sistemas de revitalização de ar e controle de pressão da cabine em operação normal, mas não contêm instruções de emergência para situações de despressurização rápida.
+
+Para obter as informações corretas sobre este procedimento crítico, você deve consultar:
+- O Manual de Procedimentos de Emergência da sua nave
+- O Manual de Operações da Tripulação
+- Os protocolos de treinamento de emergência específicos da sua missão
+
+Recomendo que você acesse esses documentos imediatamente, pois procedimentos de despressurização são essenciais para a segurança da tripulação.INFO:     127.0.0.1:56153 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 64052) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:54526 - "GET /media/samples/audio_piloto.ogg HTTP/1.1" 200 OK
+
+Tool #1: buscar_documentos
+Deixe-me buscar informações mais específicas sobre procedimentos de emergência:
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Desculpe, mas não encontrei nos manuais disponíveis um procedimento específico e detalhado sobre como agir em caso de despressurização da cabine. 
+
+Os documentos recuperados tratam principalmente de:
+- Sistemas de revitalização de ar e controle de pressão (ECLSS)
+- Sistemas de airlock para EVA (atividades extraveiculares)
+- Redução de ruído da cabine
+
+Para obter as instruções corretas sobre procedimentos de emergência em caso de despressurização, você deve consultar:
+- O Manual de Operações de Emergência da sua nave específica
+- O Manual do Sistema de Controle Ambiental e Suporte à Vida (ECLSS)
+- Os Procedimentos de Emergência da Tripulação
+
+Recomendo que você acesse esses documentos diretamente ou entre em contato com o Centro de Controle de Missão para orientações precisas sobre este procedimento crítico de segurança.INFO:     127.0.0.1:54526 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64911 - "GET /media/voice/4652910fbadd4629b7c985acf9df60e7.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:61822 - "GET /media/samples/audio_piloto_2.ogg HTTP/1.1" 200 OK
+Sim, estou aqui! 👋 Sou o **AstroCopilot**, seu copiloto de bordo. 
+
+Estou pronto para ajudar com qualquer dúvida técnica ou operacional sobre a missão espacial. Tenho acesso aos manuais e documentações disponíveis e posso recuperar informações relevantes para responder suas perguntas.
+
+Como posso ajudá-lo?INFO:     127.0.0.1:61822 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "GET /media/voice/b5c1236b1e234a4eba3b68a8e03adf6a.mp3 HTTP/1.1" 206 Partial Content
+INFO:     ('127.0.0.1', 64566) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     ('127.0.0.1', 53668) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:51897 - "GET /api/alerts?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51897 - "GET /api/alerts?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51897 - "GET /api/alerts?limit=100 HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     ('127.0.0.1', 59342) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:51897 - "GET /api/audit?limit=100 HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:63892 - "GET /api/audit?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63892 - "GET /api/audit?limit=100 HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 50770) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     ('127.0.0.1', 54871) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+WARNING:  WatchFiles detected changes in 'tests\test_tts_module.py'. Reloading...
+INFO:     connection closed
+INFO:     ('127.0.0.1', 51133) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     ('127.0.0.1', 62182) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     ('127.0.0.1', 57240) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+Olá! Sou o AstroCopilot, seu copiloto de bordo. 🚀
+
+Estou aqui para ajudar com qualquer dúvida técnica ou operacional sobre a missão espacial. Posso consultar os manuais e documentações disponíveis para fornecer informações precisas e confiáveis.
+
+Como posso ajudá-lo hoje? Tem alguma pergunta sobre sistemas da nave, procedimentos operacionais, ou qualquer outra questão relacionada à missão?INFO:     127.0.0.1:58102 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63004 - "GET /media/voice/b2fab2f95cc649dc852ef0a5a244e011.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:64409 - "OPTIONS /api/agent/query HTTP/1.1" 200 OK
+Não tenho informações sobre a situação atual da sua missão. Para ajudá-lo adequadamente, preciso que você seja mais específico. 
+
+Qual aspecto você gostaria de verificar? Por exemplo:
+- **Status dos sistemas da nave** (propulsão, energia, comunicações, etc.)
+- **Condições ambientais** (pressão, temperatura, oxigênio)
+- **Trajetória e navegação**
+- **Saúde da tripulação**
+- **Suprimentos e recursos**
+- **Algum problema ou anomalia específica**
+
+Forneça mais detalhes para que eu possa consultar os manuais e ajudá-lo com as informações corretas.INFO:     127.0.0.1:64409 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64409 - "OPTIONS /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52409 - "GET /media/voice/ce035a9df2f84bfeb25ed5d0f7fe4f89.mp3 HTTP/1.1" 206 Partial Content
+Vou buscar informações sobre as condições ambientais da nave.
+Tool #1: buscar_documentos
+Vou buscar informações mais específicas sobre parâmetros de monitoramento ambiental.
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Com base nos manuais disponíveis, posso informar que os sistemas de monitoramento ambiental da nave incluem:
+
+**Principais Sistemas Monitorados:**
+
+1. **Suprimento de Oxigênio e Pressurização da Cabine** - Sistema responsável pela manutenção da pressão e fornecimento de oxigênio
+
+2. **Revitalização da Atmosfera** - Sistema que remove CO₂ e H₂O metabólicos da cabine, mantendo a composição do ar respirável
+
+3. **Gestão de Água** - Monitoramento dos sistemas de água
+
+4. **Transporte de Calor** - Sistema de controle térmico
+
+5. **Controle de Ruído Ambiental** - O Sistema de Controle e Suporte à Vida Ambiental (ECLSS) recicla e condiciona o ar respirável, mantendo a pressurização da cabine através de sua rede de dutos
+
+**Parâmetros Críticos Monitorados:**
+- Eficiência de remoção de CO₂ e H₂O
+- Taxas de perda de N₂ e O₂
+- Níveis de ruído da cabine
+- Pressão e temperatura
+
+Para uma verificação completa das condições ambientais atuais, você precisará consultar os painéis de instrumentação específicos da sua nave. Os manuais disponíveis não detalham os valores nominais ou limites operacionais específicos.
+
+**Fontes:**
+- Lunar Module ECS (Environmental Control System) - Design Considerations and Failure Modes (NTRS 20090016294)
+- Development of Acoustic Mufflers for Cabin Noise Reduction in Orion Spacecraft (NTRS 20210013754)
+- Simulation of Unique Pressure Changing Steps and Situations in PSA Processes (NTRS 20080013427)INFO:     127.0.0.1:56754 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56754 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51158 - "GET /media/voice/34b476c8deca4018aed2ada6b4ad5c51.mp3 HTTP/1.1" 206 Partial Content
+Entendido! Sou o **AstroCopilot**, seu copiloto de bordo. 
+
+Estou pronto para ajudar com qualquer pergunta técnica ou operacional sobre a missão espacial. Para responder com precisão, vou consultar os manuais disponíveis sempre que necessário.
+
+Como posso ajudá-lo? 🚀INFO:     127.0.0.1:50258 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58719 - "GET /media/voice/6b2e9e3f112d4462a8c8a98fec46a3f7.mp3 HTTP/1.1" 206 Partial Content
+INFO:     connection closed
+INFO:     connection closed
+INFO:     ('127.0.0.1', 58833) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     ('127.0.0.1', 64335) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     ('127.0.0.1', 58192) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:57241 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57241 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57241 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54008 - "OPTIONS /api/agent/query HTTP/1.1" 200 OK
+Desculpe, mas não tenho acesso a informações de data e hora em tempo real. Meu papel como AstroCopilot é ajudá-lo com questões técnicas e operacionais da nave, consultando os manuais disponíveis.
+
+Se você precisa de informações sobre procedimentos, sistemas da nave, operações ou qualquer outro assunto técnico relacionado à missão espacial, estou à disposição para ajudar!INFO:     127.0.0.1:54008 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54008 - "OPTIONS /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61604 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51438 - "GET /media/voice/8c5f168a98464f219fb902467256965e.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:62859 - "GET /media/samples/audio_piloto.ogg HTTP/1.1" 200 OK
+
+Tool #1: buscar_documentos
+Deixe-me buscar informações mais específicas sobre procedimentos de emergência e despressurização.
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Deixe-me tentar uma busca mais direta sobre procedimentos de emergência.
+Tool #4: buscar_documentos
+
+Tool #5: buscar_documentos
+Lamento informar que **não encontrei nos manuais disponíveis procedimentos específicos e detalhados sobre como agir em caso de despressurização da cabine**.
+
+Os documentos recuperados abordam principalmente sistemas de controle ambiental, revitalização de ar e componentes técnicos de pressurização, mas não contêm os protocolos operacionais de emergência que você está procurando.
+
+Para obter as informações corretas sobre procedimentos de despressurização, recomendo consultar:
+- O manual de operações de emergência da sua nave específica
+- Os procedimentos de treinamento de emergência da sua missão
+- O controlador de voo ou comandante da missão
+
+Esses procedimentos são críticos e devem ser baseados na documentação oficial da sua nave, não em informações genéricas.INFO:     127.0.0.1:62859 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58244 - "GET /media/voice/0cfddee633734121a4af545492d05242.mp3 HTTP/1.1" 206 Partial Content
+INFO:     connection closed
+INFO:     127.0.0.1:59522 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59522 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 57589) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+Entendi! Vou fazer um teste de voz para você. Aqui está:
+
+**🎤 TESTE DE VOZ - AstroCopilot**
+
+Olá! Sou o AstroCopilot, seu copiloto de bordo. Estou operacional e pronto para auxiliar a tripulação em qualquer questão técnica ou operacional da missão espacial.
+
+Minha função é:
+- Buscar informações nos manuais técnicos disponíveis
+- Fornecer respostas objetivas e baseadas em documentação oficial
+- Citar as fontes utilizadas
+- Ser honesto quando uma informação não está disponível
+
+**Status:** ✅ Voz clara e funcional
+**Idioma:** 🇧🇷 Português do Brasil
+**Modo:** Pronto para operações
+
+Pode fazer suas perguntas técnicas ou operacionais que estarei aqui para ajudar! 🚀INFO:     127.0.0.1:65005 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64053 - "GET /media/voice/a53571eeb7f84298a5146893d63b4478.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:57519 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57519 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54450 - "POST /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53229 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection closed
+INFO:     127.0.0.1:56342 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 59213) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:56342 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     127.0.0.1:61653 - "OPTIONS /api/agent/query HTTP/1.1" 200 OK
+Olá! Tudo bem! 👋
+
+Sou o AstroCopilot, seu copiloto de bordo. Estou aqui e pronto para ajudar com qualquer dúvida técnica ou operacional da missão espacial. 
+
+Posso consultar os manuais e documentações disponíveis para responder suas perguntas sobre sistemas da nave, procedimentos, emergências ou qualquer outra questão relacionada à operação.
+
+Como posso ajudá-lo hoje?INFO:     127.0.0.1:61653 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61653 - "OPTIONS /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53032 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:54360 - "GET /media/voice/d455f993a2d34e9b9efbf263e12891cc.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:63863 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 60750) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:63863 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+Olá! Tudo bem por aqui! 🚀
+
+Estou operacional e pronto para ajudar a tripulação com qualquer dúvida técnica ou operacional sobre os sistemas da nave. Meu painel de instrumentos está verde, e estou com acesso aos manuais espaciais para consultas.
+
+Como posso ajudá-lo hoje? Tem alguma pergunta sobre procedimentos, sistemas da nave ou operações em órbita?INFO:     127.0.0.1:65182 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65182 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:51828 - "GET /media/voice/f6bd3de9c44945878c4d5772c31a1653.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:52850 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 54774) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:52850 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:49670 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 61616) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:49670 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+Vou buscar informações sobre procedimentos em caso de despressurização nos manuais.
+Tool #1: buscar_documentos
+Os resultados retornados não contêm procedimentos operacionais específicos para despressurização. Deixe-me fazer uma busca mais direcionada.
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Desculpe, não encontrei nos manuais disponíveis procedimentos operacionais específicos para situações de despressurização da cabine. Os documentos recuperados tratam principalmente de sistemas de revitalização de atmosfera e redução de ruído, mas não contêm os protocolos de emergência que você está procurando.
+
+Para obter informações sobre procedimentos em caso de despressurização, você precisaria consultar:
+- Manual de Operações de Emergência da sua nave
+- Procedimentos de Segurança da Tripulação
+- Manual do Sistema de Controle Ambiental e Suporte à Vida (ECLSS)
+
+Posso ajudá-lo com outras consultas técnicas se tiver acesso aos manuais específicos?INFO:     127.0.0.1:56496 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56496 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51364 - "GET /media/voice/cd534f4e332b47f4aef05edeb09a8aa7.mp3 HTTP/1.1" 206 Partial Content
+INFO:     connection closed
+INFO:     127.0.0.1:62871 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 54195) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:62871 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     127.0.0.1:59916 - "OPTIONS /api/agent/query HTTP/1.1" 200 OK
+
+Tool #1: buscar_documentos
+Deixe-me buscar informações mais específicas sobre procedimentos de pressurizacao da cabine:
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Desculpe, mas **não encontrei nos manuais disponíveis um procedimento específico e detalhado sobre pressurizacao da cabine** que pudesse ser aplicado operacionalmente.
+
+Os trechos recuperados mencionam apenas aspectos técnicos gerais sobre:
+- Sistemas de revitalização de atmosfera (SBAR) que mantêm a pressurizacao da cabine
+- Componentes do ECLSS (Environmental Control and Life Support System) responsáveis pela pressurizacao
+- Procedimentos de repressurização e despressurização de airlock para EVA
+
+Para obter o procedimento correto de pressurizacao, você precisaria consultar:
+- O manual operacional específico da sua nave/módulo
+- O manual do sistema ECLSS da sua aeronave
+- Os procedimentos de emergência da sua missão
+
+Poderia fornecer mais detalhes sobre qual situação específica você enfrenta (pressurizacao de emergência, pressurizacao de airlock, pressurizacao de módulo, etc.) para que eu possa fazer uma busca mais direcionada?INFO:     127.0.0.1:59916 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59916 - "OPTIONS /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56001 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64202 - "GET /media/voice/5f26b23e0e404802a28343f26a6fdeb2.mp3 HTTP/1.1" 206 Partial Content
+INFO:     connection closed
+INFO:     127.0.0.1:54365 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 51558) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:54365 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     127.0.0.1:54624 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54624 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection closed
+INFO:     127.0.0.1:49705 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 58348) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:49705 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:49705 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49705 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 57838) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:49793 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49793 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 64953) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:53750 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 52450) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53750 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60692 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60692 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection closed
+INFO:     127.0.0.1:63783 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 50943) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63783 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+
+Tool #1: buscar_documentos
+Não encontrei informações específicas sobre o estado de saúde atual dos tripulantes nos manuais disponíveis. 
+
+Os documentos que recuperei tratam de sistemas de suporte à vida e conforto da tripulação (como o sistema de controle ambiental e redução de ruído na cabine), mas não contêm dados sobre monitoramento médico ou condições de saúde dos membros da tripulação.
+
+Para obter essa informação, você precisaria:
+- Consultar os registros médicos da tripulação
+- Verificar os sistemas de monitoramento biométrico em tempo real
+- Contactar o médico de bordo ou o centro de controle de missão
+
+Posso ajudá-lo com outras questões técnicas ou operacionais sobre os sistemas da nave?INFO:     127.0.0.1:49201 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49201 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61635 - "GET /media/voice/5cbe7761662141efa38ce43b387768bf.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:61760 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49860 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49860 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61255 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61179 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58585 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51775 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:60030 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 64469) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:60030 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58034 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection open
+INFO:     127.0.0.1:64430 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:60030 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60030 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64430 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 52922) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:58034 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection open
+INFO:     127.0.0.1:49789 - "GET /media/voice/d92601ca9a064ea186b5bb0524b26917.mp3 HTTP/1.1" 206 Partial Content
+Sim, estou aqui! 🚀 Sou o AstroCopilot, seu copiloto de bordo. 
+
+Estou pronto para ajudar com qualquer dúvida técnica ou operacional sobre a missão espacial. Basta me fazer suas perguntas que vou consultar os manuais disponíveis para fornecer as informações mais precisas e confiáveis.
+
+Como posso ajudá-lo?INFO:     127.0.0.1:60917 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60917 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57737 - "GET /media/voice/f2835d199f09419680dbd486753eebf5.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:64639 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57521 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58372 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58372 - "OPTIONS /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58372 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:50060 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 58973) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:50060 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     127.0.0.1:50364 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62286 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51928 - "OPTIONS /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50096 - "GET /media/voice/7cfa578098f9417d9a01368148f88a16.mp3 HTTP/1.1" 206 Partial Content
+Oi! Sim, estou aqui! 👋 Sou o **AstroCopilot**, seu copiloto de bordo. 
+
+Estou pronto para ajudar com qualquer dúvida técnica ou operacional sobre a missão espacial. É só me fazer a pergunta que vou consultar os manuais e te dar as informações que você precisa.
+
+Como posso ajudá-lo?INFO:     127.0.0.1:51928 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51928 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58628 - "GET /media/voice/84d1a93ce7004498a305742dd8666e58.mp3 HTTP/1.1" 206 Partial Content
+INFO:     connection closed
+INFO:     127.0.0.1:58697 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 65451) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:55706 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     127.0.0.1:55706 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58697 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55706 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58697 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     connection closed
+INFO:     127.0.0.1:62991 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 51595) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:52295 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62991 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52295 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:52295 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62991 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52295 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62991 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 61068) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63047 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+Oi! Sim, estou aqui! 👋 Sou o **AstroCopilot**, seu copiloto de bordo. 
+
+Estou pronto para ajudar com qualquer dúvida técnica ou operacional sobre a missão espacial. Tenho acesso aos manuais e documentações da nave, então é só me fazer suas perguntas que vou buscar as informações necessárias nos sistemas.
+
+Como posso ajudá-lo?INFO:     127.0.0.1:59595 - "POST /api/agent/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59595 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49157 - "GET /media/voice/dbef136a909a40939ae4b340e968986b.mp3 HTTP/1.1" 206 Partial Content
+INFO:     connection closed
+INFO:     127.0.0.1:51054 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 53534) - "WebSocket /ws/telemetry" [accepted]
+INFO:     127.0.0.1:54311 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51054 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54311 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:62959 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62959 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62959 - "GET /api/voice/recordings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62959 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     ('127.0.0.1', 49670) - "WebSocket /ws/telemetry" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:55983 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+
+Tool #1: buscar_documentos
+Deixe-me buscar informações mais específicas sobre procedimentos de emergência em caso de despressurização.
+Tool #2: buscar_documentos
+
+Tool #3: buscar_documentos
+Deixe-me fazer uma busca mais direcionada para procedimentos de emergência e ações da tripulação.
+Tool #4: buscar_documentos
+
+Tool #5: buscar_documentos
+Lamento informar que **não encontrei nos manuais disponíveis procedimentos específicos sobre como agir em caso de despressurização da cabine**. 
+
+Os documentos recuperados abordam principalmente aspectos técnicos de sistemas de controle ambiental (ECLSS), revitalização de ar e características de design de sistemas de pressurização, mas não contêm os procedimentos operacionais e checklists de emergência que você necessita para responder adequadamente a uma situação de despressurização.
+
+Para obter as informações corretas sobre este procedimento crítico de segurança, você deve consultar:
+- O manual de procedimentos de emergência específico da sua nave
+- O manual de operações da tripulação
+- Os checklists de resposta rápida (Quick Reference Handbook)
+- O treinamento de simulação de emergência
+
+Recomendo que você acesse esses documentos diretamente ou entre em contato com o controle de missão para orientações precisas sobre este procedimento vital.INFO:     127.0.0.1:55983 - "POST /api/voice HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64876 - "GET /media/voice/415f29ca37fd41eab8f5418dc598ff18.mp3 HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:64786 - "GET /api/tts/status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51644 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51650 - "POST /api/tts HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:51652 - "POST /api/tts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51654 - "GET /api/tts/ack?voice_profile=leo HTTP/1.1" 404 Not Found

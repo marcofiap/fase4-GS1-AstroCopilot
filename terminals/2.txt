@@ -1,0 +1,13 @@
+---
+pid: 13336
+cwd: "C:\Users\felip\OneDrive\Documentos\Dev\ano2_fiap\fase4\fase4-GS1-AstroCopilot"
+command: "Set-Location \"C:\\Users\\felip\\OneDrive\\Documentos\\Dev\\ano2_fiap\\fase4\\fase4-GS1-AstroCopilot\\backend\"; C:\\Users\\felip\\OneDrive\\Documentos\\Dev\\ano2_fiap\\fase4\\fase4-GS1-AstroCopilot\\.venv\\Scripts\\uvicorn.exe main:app --reload --host 127.0.0.1 --port 8000 --reload-dir . --reload-dir ..\\voice-nlp"
+started_at: 2026-06-03T16:39:54.726Z
+running_for_ms: 40270    
+---
+INFO:     Will watch for changes in these directories: ['C:\\Users\\felip\\OneDrive\\Documentos\\Dev\\ano2_fiap\\fase4\\fase4-GS1-AstroCopilot\\backend', 'C:\\Users\\felip\\OneDrive\\Documentos\\Dev\\ano2_fiap\\fase4\\fase4-GS1-AstroCopilot\\voice-nlp']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [13056] using WatchFiles
+INFO:     Started server process [7920]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

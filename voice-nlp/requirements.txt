@@ -1,5 +1,6 @@
 # Frente 2 - NLP & Voz (STT Whisper + TTS gTTS)
 # Python 3.11+ (mesmo do backend). Requer ffmpeg no PATH para webm/ogg/mp3.
 faster-whisper
+edge-tts
 gTTS
 python-dotenv

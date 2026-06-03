@@ -4,15 +4,16 @@ from pathlib import Path
 import main
 
 
-def _fake_voice_pipeline(audio_bytes: bytes, filename: str | None, ask_agent):
+def _fake_voice_pipeline(audio_bytes: bytes, filename: str | None, ask_agent, voice_profile=None):
     assert audio_bytes
     resultado = ask_agent("como despressurizar a cabine")
+    fake_mp3 = Path("resposta.mp3")
     return {
         "transcript": "como despressurizar a cabine",
         "intent": "pergunta",
         "answer_text": resultado["answer"],
         "sources": resultado["sources"],
-        "answer_audio_file": None,
+        "answer_audio_file": fake_mp3,
     }
 
 
@@ -28,6 +29,7 @@ def test_voice_pipeline_integrado(client, monkeypatch):
     assert body["intent"] == "pergunta"
     assert "answer" in body["answer_text"].lower() or "teste" in body["answer_text"].lower()
     assert body["sources"]
+    assert body["answer_audio_url"] == "/media/voice/resposta.mp3"
 
     audit = client.get("/api/audit").json()
     assert audit["audit"][0]["channel"] == "voice"

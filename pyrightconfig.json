@@ -1,0 +1,11 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "extraPaths": [
+    "./agent-rag",
+    "./voice-nlp",
+    "./backend",
+    "./.venv/Lib/site-packages"
+  ]
+}
+

@@ -17,11 +17,22 @@ class HealthResponse(BaseModel):
 
 class AgentQuery(BaseModel):
     text: str = Field(..., description="Pergunta/comando do tripulante em texto")
+    with_audio: bool = Field(
+        False,
+        description="Gera MP3 da resposta no mesmo request (Edge TTS, perfil abaixo)",
+    )
+    voice_profile: Optional[str] = Field(
+        "leo",
+        description="Perfil de voz quando with_audio=true: eve | ara | leo | rex | sal",
+    )
 
 
 class AgentResponse(BaseModel):
     answer: str
     sources: List[str] = []
+    answer_audio_url: Optional[str] = Field(
+        None, description="MP3 da resposta em /media/voice/ (quando with_audio=true)"
+    )
 
 
 class VoiceResponse(BaseModel):
@@ -32,6 +43,32 @@ class VoiceResponse(BaseModel):
     )
     sources: List[str] = []
     answer_audio_url: Optional[str] = None
+
+
+class TtsRequest(BaseModel):
+    text: str = Field(..., description="Texto da resposta do agente para sintetizar em PT-BR")
+    voice_profile: Optional[str] = Field(
+        "leo",
+        description="Perfil de voz: eve | ara | leo | rex | sal",
+    )
+
+
+class TtsResponse(BaseModel):
+    audio_url: str = Field(..., description="URL do MP3 em /media/voice/")
+
+
+class UserRecordingMeta(BaseModel):
+    id: str
+    filename: str
+    label: str
+    created_at: str
+    size_bytes: int
+    audio_url: str
+
+
+class UserRecordingsListResponse(BaseModel):
+    recordings: List[UserRecordingMeta] = []
+    max: int = 8
 
 
 class VisionResponse(BaseModel):

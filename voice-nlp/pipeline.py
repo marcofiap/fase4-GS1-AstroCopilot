@@ -23,6 +23,7 @@ def process_voice(
     audio_bytes: bytes,
     filename: str | None,
     ask_agent: AskAgent,
+    voice_profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Executa o ciclo completo de voz.
@@ -40,7 +41,7 @@ def process_voice(
     audio_path = None
     if answer_text:
         try:
-            audio_path = tts.synthesize(answer_text)
+            audio_path = tts.synthesize(answer_text, voice_profile=voice_profile)
         except Exception as exc:
             print(f"[Frente 2] TTS falhou (resposta so em texto): {exc}")
 
