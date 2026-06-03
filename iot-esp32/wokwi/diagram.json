@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "author": "Luiz Henrique Ribeiro de Oliveira",
+  "editor": "wokwi",
+  "serialMonitor": {
+    "collapse": false,
+    "convertEol": false,
+    "display": "always",
+    "newline": "lf"
+  },
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 4.7, "left": 4.6, "attrs": {} },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "mpu",
+      "top": -45.62,
+      "left": 126.88,
+      "rotate": 180,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-ds18b20",
+      "id": "temp1",
+      "top": 100,
+      "left": 200,
+      "attrs": { "temperature": "36.6" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 196.25,
+      "left": 152.2,
+      "rotate": 180,
+      "attrs": { "value": "4700" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot1",
+      "top": 232.5,
+      "left": -75.8,
+      "rotate": 180,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [ "esp:3V3", "mpu:VCC", "red", [] ],
+    [ "esp:GND.1", "mpu:GND", "black", [] ],
+    [ "esp:D22", "mpu:SCL", "green", [] ],
+    [ "esp:D21", "mpu:SDA", "blue", [] ],
+    [ "esp:3V3", "temp1:VCC", "red", [ "h28.5", "h90.32" ] ],
+    [ "esp:D4", "temp1:DQ", "yellow", [ "h57.3", "v48.1", "h51.92" ] ],
+    [ "esp:3V3", "pot1:VCC", "red", [ "h18.9", "v57.6", "h-173.6" ] ],
+    [ "esp:GND.1", "pot1:GND", "black", [ "h9.3", "v57.5", "h-144" ] ],
+    [ "esp:D34", "pot1:SIG", "purple", [] ],
+    [ "esp:GND.1", "temp1:GND", "black", [ "h0" ] ],
+    [ "temp1:DQ", "r1:1", "yellow", [ "v0" ] ],
+    [ "esp:3V3", "r1:2", "red", [ "h38.1", "v38.4" ] ]
+  ],
+  "dependencies": {}
+}

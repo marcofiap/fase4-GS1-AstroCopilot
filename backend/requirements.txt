@@ -2,3 +2,10 @@ fastapi==0.115.*
 uvicorn[standard]==0.32.*
 python-multipart==0.0.*
 pydantic==2.*
+
+# Frente 4 — modelo de risco (Edge ML). PINAR igual ao treino
+# (iot-esp32/ml-edge/requirements.txt), senão o joblib.load do model.pkl
+# pode falhar/avisar por incompatibilidade de versão.
+scikit-learn==1.6.*
+joblib==1.5.*
+numpy==2.2.*

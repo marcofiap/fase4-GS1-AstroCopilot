@@ -1,0 +1,19 @@
+# Wokwi para VS Code (extensão "Wokwi Simulator").
+# Docs: https://docs.wokwi.com/vscode/getting-started
+# A extensão carrega o diagram.json DESTA pasta e o firmware compilado abaixo.
+#
+# Compile antes de simular (gera ./build com .bin + .elf):
+#   pwsh ./build.ps1
+#   # ou, a partir de iot-esp32/:
+#   arduino-cli core install esp32:esp32
+#   arduino-cli lib install "Adafruit MPU6050" "Adafruit Unified Sensor" "Adafruit BusIO" OneWire DallasTemperature
+#   arduino-cli compile --fqbn esp32:esp32:esp32doit-devkit-v1 --output-dir wokwi/build firmware/firmware.ino
+#
+# Iniciar a simulação:  Ctrl+Shift+P -> "Wokwi: Start Simulator".
+
+[wokwi]
+version = 1
+# ESP32: .bin único com bootloader + tabela de partição + app (merged).
+firmware = 'build/firmware.ino.merged.bin'
+# ELF com símbolos: pinos nomeados no diagrama, stack trace e debug GDB.
+elf = 'build/firmware.ino.elf'

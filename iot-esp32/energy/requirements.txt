@@ -1,0 +1,2 @@
+# Modelo de energia (gera os gráficos de autonomia e energia/pacote)
+matplotlib==3.*

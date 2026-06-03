@@ -1,0 +1,7 @@
+# Bibliotecas Arduino usadas pelo firmware (Wokwi instala automaticamente).
+# Uma por linha, com o nome exato do Library Manager.
+Adafruit MPU6050
+Adafruit Unified Sensor
+Adafruit BusIO
+OneWire
+DallasTemperature
