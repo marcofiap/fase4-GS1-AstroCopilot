@@ -34,6 +34,8 @@ vision/models/*
 agent-rag/vectorstore/*
 !agent-rag/vectorstore/.gitkeep
 agent-rag/data/
+voice-nlp/cache/*
+!voice-nlp/cache/.gitkeep
 
 # ----- Node / Frontend -----
 node_modules/

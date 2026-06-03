@@ -66,6 +66,15 @@ Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
 `Whisper` · `gTTS` · `PyTorch` · `YOLOv8/CLIP` · `Tesseract` · `ESP32` · `Wokwi` · `LoRa/BLE` ·
 `scikit-learn` · `React` · `Vite` · `TailwindCSS` · `Recharts` · `GitHub Actions` · `Docker`
 
+## Configuração de ambiente
+
+Um único arquivo **`.env` na raiz do repositório** (não use `.env` dentro de `agent-rag/` ou `voice-nlp/`):
+
+```bash
+cp .env.example .env
+# Preencha AWS_BEARER_TOKEN_BEDROCK e, se quiser, ajuste Whisper/TTS (ver .env.example)
+```
+
 ## Como executar (início rápido)
 
 O backend já roda com **respostas mock**, permitindo que todas as frentes trabalhem em paralelo.
