@@ -1,62 +1,66 @@
-"""OCR de paineis com Tesseract."""
-
+"""
+ocr.py — OCR de painéis e displays espaciais
+=============================================
+Extrai texto de imagens de painéis de controle usando Tesseract OCR.
+"""
+from __future__ import annotations
 from pathlib import Path
-from typing import List, Tuple
-
+from typing import Tuple
 import cv2
 import numpy as np
 import pytesseract
 from PIL import Image
 
-# ✅ CAMINHO DO TESSERACT NO SEU PC
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
-
 class PanelOCR:
     def __init__(self, lang: str = "eng", psm: int = 6):
+        """
+        psm 6: Assume um bloco de texto uniforme. Ideal para displays de dados.
+        """
         self.lang = lang
         self.psm = psm
 
     def preprocess(self, image: np.ndarray) -> np.ndarray:
-        """Melhora contraste e binariza para OCR."""
+        """ Pipeline de tratamento de imagem para melhorar a assertividade do OCR """
+        # 1. Garante escala de cinza
         if len(image.shape) == 3:
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         else:
             gray = image.copy()
 
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        enhanced = clahe.apply(gray)
+        # 2. Redimensiona para aumentar a nitidez dos caracteres pequenos (Upscaling)
+        gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+        # 3. Limpeza de ruído e binarização adaptativa (ótimo para displays LED/LCD)
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
         binary = cv2.adaptiveThreshold(
-            enhanced, 255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
             cv2.THRESH_BINARY, 11, 2
         )
-        return cv2.medianBlur(binary, 3)
+        return binary
 
-    def extract(self, image, region: Tuple[int, int, int, int] | None = None) -> str:
-        """Extrai texto de imagem ou regiao especifica."""
-        if isinstance(image, (str, Path)):
-            img = cv2.imread(str(image))
-        elif isinstance(image, Image.Image):
+    def extract_text(self, image: Image.Image | np.ndarray, region: Tuple[int, int, int, int] | None = None) -> str:
+        # Conversão para formato OpenCv (numpy array BGR)
+        if isinstance(image, Image.Image):
             img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         else:
             img = image.copy()
 
-        if region:
+        # Se houver uma Bounding Box detectada pelo YOLO, faz o crop na região do display
+        if region is not None:
             x1, y1, x2, y2 = region
             img = img[y1:y2, x1:x2]
 
-        processed = self.preprocess(img)
-        config = f"--psm {self.psm} -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .:%°µ/\\-"
-        text = pytesseract.image_to_string(processed, lang=self.lang, config=config)
-        return " ".join(text.split())
+        if img.size == 0:
+            return ""
 
-    # ✅ ADICIONAR ESTE MÉTODO:
-    def extract_regions(self, image, regions: List[Tuple[str, Tuple]]) -> List[dict]:
-        """Extrai texto de multiplas regioes."""
-        results = []
-        for name, bbox in regions:
-            text = self.extract(image, region=bbox)
-            if text:
-                results.append({"region": name, "text": text})
-        return results
+        processed = self.preprocess(img)
+
+        # Configuração restritiva para evitar caracteres fantasmas e focar em dados técnicos de naves
+        custom_config = f"--psm {self.psm} -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.:%° "
+        
+        try:
+            text = pytesseract.image_to_string(processed, lang=self.lang, config=custom_config)
+            return " ".join(text.strip().split())
+        except Exception as e:
+            print(f"[OCR] Erro ao processar Tesseract: {e}")
+            return ""
