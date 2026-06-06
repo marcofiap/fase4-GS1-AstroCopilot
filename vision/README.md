@@ -20,3 +20,7 @@ vision/
 ├── ocr.py              # Classe PanelOCR (Tesseract OCR)
 ├── pipeline.py         # Orquestrador do fluxo (process_image)
 └── README.md           # Documentação da Frente 3
+
+## O Pipeline de Execução
+O processamento ocorre de forma sequencial através de um pipeline unificado:
+[Imagem Bruta] ➔ [YOLOv8: Detecção do Componente] ➔ [Recorte de ROI] ➔ [Tesseract: OCR do Display] ➔ [Lógica de Descrição] ➔ [JSON de Saída]
