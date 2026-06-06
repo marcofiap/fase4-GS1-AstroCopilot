@@ -96,6 +96,24 @@ implementado no backend FastAPI.
 
 ---
 
+### Teste de Resiliência: Input Vazio ou Apagado (Edge Case)
+
+Para garantir que o ecossistema do **AstroCopilot** permaneça estável mesmo diante de falhas físicas de captura (ex: câmera obstruída, ausência de luz na cabine ou envio de arquivos corrompidos), o pipeline foi submetido a testes de estresse com imagens zeradas (pixels pretos/brancos criados via MS Paint) e payloads de 0 bytes.
+
+**Comportamento Isolado dos Componentes:**
+
+* **YOLOv8 (Detector):** Realiza a varredura matricial com sucesso e retorna uma lista vazia de detecções (`[]`), sem estourar índices.
+* **Tesseract (PanelOCR):** O pipeline de binarização adaptativa do OpenCV trata a imagem escura e o motor de OCR retorna uma string vazia (`""`), filtrando ruídos.
+
+#### Exemplo de Resposta Estruturada (Log Real)
+Mesmo sem nenhum estímulo visual válido, o sistema intercepta o estado nulo graciosamente e responde com o contrato JSON perfeitamente íntegro, evitando quedas no backend:
+
+```json
+{
+  "objects": [],
+  "ocr_text": "",
+  "description": "Nenhum componente ou dado legível identificado na captura da câmera."
+}
 ## Escopo de Entrega
 
 ### MVP
