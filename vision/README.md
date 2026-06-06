@@ -1,59 +1,192 @@
-# vision/ — Visão Computacional (Frente 3)
+# Frente 3 — Visão Computacional (`vision/`)
 
-Módulo responsável por analisar de forma inteligente as imagens que o astronauta envia à cabine. O sistema realiza a detecção de componentes críticos e extrai informações textuais de displays e painéis em tempo real.
+Módulo responsável por analisar de forma inteligente as imagens enviadas pelo astronauta à cabine. O sistema realiza a detecção de componentes críticos e extrai informações textuais de displays e painéis em tempo real.
 
-## Responsável
-* **Frente 3** — Visão Computacional (Inteligência Artificial).
+---
+
+## Responsabilidade
+
+**Frente 3 — Visão Computacional (Inteligência Artificial)**
+
+Esta frente é responsável por:
+
+* Detectar componentes da cabine utilizando IA.
+* Identificar displays e painéis relevantes.
+* Extrair textos e leituras presentes nos equipamentos.
+* Gerar descrições estruturadas para consumo pelo backend.
+
+---
 
 ## Tecnologias Utilizadas
-* **YOLOv8 (Ultralytics):** Detecção de componentes e displays na cabine.
-* **Tesseract OCR (Pytesseract):** Extração de texto analógico/digital de alertas e pressões.
-* **Pillow & OpenCV:** Processamento e manipulação de imagens no pipeline.
+
+| Tecnologia                  | Finalidade                             |
+| --------------------------- | -------------------------------------- |
+| YOLOv8 (Ultralytics)        | Detecção de componentes e displays     |
+| Tesseract OCR (Pytesseract) | Extração de texto de painéis e alertas |
+| OpenCV                      | Pré-processamento de imagens           |
+| Pillow (PIL)                | Manipulação de imagens                 |
+| Python                      | Orquestração do pipeline               |
+
+---
 
 ## Estrutura de Arquivos
 
 ```text
 vision/
-├── models/             # Pesos treinados (.pt) — [Não Versionados]
-├── test_images/        # Imagens de teste (ex: teste.jpg)
-├── detector.py         # Classe ComponentDetector (YOLOv8 do grupo)
-├── ocr.py              # Classe PanelOCR (Tesseract OCR)
-├── pipeline.py         # Orquestrador do fluxo (process_image)
+├── models/             # Pesos treinados (.pt) - Não versionados
+├── test_images/        # Imagens de teste
+├── detector.py         # Classe ComponentDetector (YOLOv8)
+├── ocr.py              # Classe PanelOCR (Tesseract)
+├── pipeline.py         # Orquestrador principal
 └── README.md           # Documentação da Frente 3
+```
 
-## O Pipeline de Execução
-O processamento ocorre de forma sequencial através de um pipeline unificado:
-[Imagem Bruta] ➔ [YOLOv8: Detecção do Componente] ➔ [Recorte de ROI] ➔ [Tesseract: OCR do Display] ➔ [Lógica de Descrição] ➔ [JSON de Saída]
+---
 
-1. Detecção: O ComponentDetector recebe a imagem e localiza os componentes mapeados pelo modelo YOLOv8.
+## Pipeline de Execução
 
-2. OCR: O PanelOCR isola as coordenadas delimitadoras (Bounding Boxes) dos displays detectados e extrai strings de texto (como dados de pressão ou alertas).
+O processamento ocorre através de um pipeline unificado:
 
-3. Engenharia de Prompt/Regras: O pipeline consolida as classes e os textos em uma descrição dinâmica e contextualizada.
+```text
+[Imagem Bruta]
+       ↓
+[YOLOv8 - Detecção de Componentes]
+       ↓
+[Recorte da ROI]
+       ↓
+[Tesseract OCR]
+       ↓
+[Lógica de Descrição]
+       ↓
+[JSON de Saída]
+```
 
-4. Integração: O fluxo é exposto ao ecossistema através do endpoint POST /api/vision no backend (FastAPI).
+### Detecção de Componentes
 
-## Escopo de Entrega (MVP vs. Stretch)
-MVP: Detecção estável de classes de componentes cruciais + Extração funcional do texto de pelo menos um display principal.
+O `ComponentDetector` recebe a imagem e utiliza o modelo YOLOv8 treinado pelo grupo para localizar os componentes presentes na cabine.
 
-Stretch: Classificação dinâmica de anomalias visuais (ex: identificação de LEDs de alerta ativos e geração de alarmes prioritários na descrição de cabine).
+### OCR dos Displays
 
-## Como Testar o Módulo Localmente
-1. Pré-requisitos do Sistema
-Certifique-se de ter o executável do Tesseract OCR instalado no seu sistema operacional e configurado nas variáveis de ambiente, além das dependências especificadas no requirements.txt do backend (ultralytics, pillow, pytesseract).
+O módulo `PanelOCR` utiliza as coordenadas detectadas para isolar regiões de interesse (*Regions of Interest - ROI*) e extrair textos relevantes, como:
 
-## Executando o disparo de teste via API
-Com o servidor backend rodando na raiz do projeto (uvicorn backend.main:app --reload), você pode validar o pipeline enviando uma imagem real através do terminal:
+* Pressões
+* Temperaturas
+* Alertas
+* Indicadores de status
 
-curl -X POST [http://127.0.0.1:8000/api/vision](http://127.0.0.1:8000/api/vision) -F "image=@test_images/teste.jpg"
+### Consolidação e Descrição
 
-Exemplo de Retorno (JSON Real)
+O pipeline combina:
+
+* Classes detectadas
+* Textos extraídos
+* Regras de negócio
+
+para produzir uma descrição contextualizada da situação observada.
+
+### Integração com Backend
+
+O módulo é disponibilizado através do endpoint:
+
+```http
+POST /api/vision
+```
+
+implementado no backend FastAPI.
+
+---
+
+## Escopo de Entrega
+
+### MVP
+
+* Detecção estável dos componentes principais da cabine.
+* Extração funcional de texto de pelo menos um display.
+* Retorno estruturado em JSON.
+
+### Stretch Goals
+
+* Detecção automática de anomalias visuais.
+* Identificação de LEDs de alerta ativos.
+* Priorização automática de alarmes.
+* Geração de descrições avançadas da cabine.
+
+---
+
+## Como Executar Localmente
+
+### Pré-requisitos
+
+Instale o Tesseract OCR no sistema operacional e configure-o nas variáveis de ambiente.
+
+Além disso, instale as dependências do projeto:
+
+```bash
+pip install -r requirements.txt
+```
+
+Principais bibliotecas utilizadas:
+
+* ultralytics
+* pytesseract
+* pillow
+* opencv-python
+
+---
+
+## Iniciando o Backend
+
+Na raiz do projeto:
+
+```bash
+uvicorn backend.main:app --reload
+```
+
+Servidor disponível em:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## Testando o Endpoint
+
+Envie uma imagem para validação do pipeline:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/vision \
+-F "image=@test_images/teste.jpg"
+```
+
+---
+
+## Exemplo de Resposta
+
+```json
 {
   "objects": ["objeto_74"],
   "ocr_text": "PRESS: 101 kPa",
   "description": "Análise concluída. Componentes identificados na cabine: objeto_74. Leituras adicionais: PRESS: 101 kPa."
 }
+```
+
+---
 
 ## Disciplinas Correlacionadas
-F4 C01 + C11: Visão Computacional, Fine-Tuning e Treinamento de Modelos de Detecção.
-F3 C11: Segmentação de Imagens, Extração de Features e Pipelines de Pré-processamento.
+
+### F4 C01 + F4 C11
+
+* Visão Computacional
+* Fine-Tuning
+* Treinamento de Modelos de Detecção
+
+### F3 C11
+
+* Segmentação de Imagens
+* Extração de Features
+* Pipelines de Pré-processamento
+
+---
+
+Responsável pela análise automática das imagens da cabine, integração com modelos de IA e geração de informações estruturadas para o sistema de suporte ao astronauta.
