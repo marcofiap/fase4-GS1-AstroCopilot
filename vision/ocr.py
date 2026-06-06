@@ -19,6 +19,8 @@ class PanelOCR:
         self.lang = lang
         self.psm = psm
 
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
     def preprocess(self, image: np.ndarray) -> np.ndarray:
         """ Pipeline de tratamento de imagem para melhorar a assertividade do OCR """
         # 1. Garante escala de cinza
@@ -45,17 +47,31 @@ class PanelOCR:
         else:
             img = image.copy()
 
-        # Se houver uma Bounding Box detectada pelo YOLO, faz o crop na região do display
+        # Armazena dimensões máximas para evitar estouro de Bounding Box
+        h, w = img.shape[:2]
+
+        # Se houver uma Bounding Box detectada pelo YOLO, faz o crop seguro na região do display
         if region is not None:
-            x1, y1, x2, y2 = region
-            img = img[y1:y2, x1:x2]
+            try:
+                x1, y1, x2, y2 = region
+                # Garante que as coordenadas respeitem os limites da imagem física
+                x1_safe = max(0, min(x1, w))
+                y1_safe = max(0, min(y1, h))
+                x2_safe = max(0, min(x2, w))
+                y2_safe = max(0, min(y2, h))
+                
+                # Só faz o recorte se a área resultante for geometricamente válida
+                if x2_safe > x1_safe and y2_safe > y1_safe:
+                    img = img[y1_safe:y2_safe, x1_safe:x2_safe]
+            except Exception:
+                pass # Se falhar o cálculo, mantém a imagem cheia como fallback de segurança
 
         if img.size == 0:
             return ""
 
         processed = self.preprocess(img)
 
-        # Configuração restritiva para evitar caracteres fantasmas e focar em dados técnicos de naves
+        # Configuração restritiva para evitar caracteres fantasmas e focar em dados técnicos
         custom_config = f"--psm {self.psm} -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.:%° "
         
         try:
