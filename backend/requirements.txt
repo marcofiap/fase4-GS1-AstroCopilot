@@ -16,3 +16,4 @@ gTTS
 Pillow
 ultralytics
 opencv-python-headless
+pytesseract
