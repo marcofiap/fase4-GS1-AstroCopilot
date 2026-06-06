@@ -34,6 +34,41 @@ class VisionPipeline:
 
         img_array = np.array(image)
 
+        # 1. Executa a detecção de objetos (YOLOv8) usando o detector do grupo
+        detections = self.detector.detect(img_array)
+        objects = [d["class"] for d in detections]
+
+        # 2. Determina a região de interesse (ROI) para rodar o OCR de forma segura
+        ocr_texts = []
+        
+        # Percorre as detecções procurando por bboxes (coordenadas [x1, y1, x2, y2])
+        for det in detections:
+            # Se o detector deles trouxer a chave 'box' ou 'bbox', pegamos as coordenadas
+            bbox = det.get("box") or det.get("bbox")
+            
+            # Se a classe detectada for um display/painel e tiver coordenadas válidas
+            if bbox and len(bbox) == 4:
+                # Converte para inteiros caso venha em float
+                bbox_int = (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
+                text = self.ocr.extract_text(image, region=bbox_int)
+                if text:
+                    ocr_texts.append(text)
+
+        # Fallback: Se não achou caixas específicas ou o OCR nas caixas veio vazio, tenta ler a imagem cheia
+        if ocr_texts:
+            ocr_text = " | ".join(ocr_texts)
+        else:
+            ocr_text = self.ocr.extract_text(image)
+
+        # 3. Geração da descrição dinâmica baseada em regras de contexto de IA
+        description = self._build_description(objects, ocr_text)
+
+        return {
+            "objects": objects,
+            "ocr_text": ocr_text,
+            "description": description
+        }
+
         # 1. Executa a detecção de objetos (YOLOv8)
         detections = self.detector.detect(img_array)
         objects = [d["class"] for d in detections]

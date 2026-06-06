@@ -39,6 +39,15 @@ from schemas import (
     VoiceResponse,
 )
 
+# Garante que o Python encontre a pasta 'vision' na raiz do projeto
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_VISION_DIR = str(_PROJECT_ROOT / "vision")
+if _VISION_DIR not in sys.path:
+    sys.path.insert(0, _VISION_DIR)
+
+# Importa a função de processamento real que você desenvolveu e validou
+from pipeline import process_image as vision_process
+
 # --------------------------------------------------------------------------- #
 #  Frente 2 (bootstrap): carrega raiz/.env antes do agent-rag/config.py
 # --------------------------------------------------------------------------- #
@@ -324,17 +333,28 @@ async def voice(audio: UploadFile = File(...)) -> VoiceResponse:
 # --------------------------------------------------------------------------- #
 @app.post("/api/vision", response_model=VisionResponse)
 async def vision(image: UploadFile = File(...)) -> VisionResponse:
-    """Analisa a imagem que o astronauta mostra (painel/componente).
-
-    TODO [Frente 3]: YOLOv8/CLIP (detecção) + Tesseract (OCR) em vision/.
     """
-    _ = await image.read()  # consome o upload (mock)
-    return VisionResponse(
-        objects=["painel_de_controle", "led_alerta"],
-        ocr_text="O2: 21%  PRESS: 101 kPa  ALERTA",
-        description="[MOCK] Painel detectado com alerta ativo.",
-    )
-
+    Analisa a imagem real que o astronauta mostra (painel/componente).
+    Roda a detecção YOLOv8 + Extração Tesseract OCR de forma dinâmica.
+    """
+    image_bytes = await image.read()
+    
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail="Arquivo de imagem vazio ou corrompido.")
+    
+    try:
+        # Executa o seu pipeline real da Frente 3 com os bytes da foto
+        resultado = vision_process(image_bytes)
+        
+        # Devolve a resposta estruturada para o cliente (Frontend/API)
+        return VisionResponse(
+            objects=resultado.get("objects", []),
+            ocr_text=resultado.get("ocr_text", ""),
+            description=resultado.get("description", "")
+        )
+    except Exception as exc:
+        print(f"[Erro Crítico Frente 3]: {exc}")
+        raise HTTPException(status_code=500, detail=f"Erro interno no processamento de visão: {exc}")
 
 # --------------------------------------------------------------------------- #
 #  Telemetria do ESP32  (Frente 4) — por tripulante, com mais sensores
