@@ -13,3 +13,4 @@ python-dotenv
 # Frente 2: STT (faster-whisper) + TTS (gTTS) — voice-nlp/pipeline.py
 faster-whisper
 gTTS
+Pillow
