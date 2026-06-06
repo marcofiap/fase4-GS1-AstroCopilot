@@ -56,7 +56,7 @@ ESP32 (WiFi Wokwi-GUEST) --HTTP GET--> http://<host>:8000/api/telemetry?...
 
 ## Otimização de energia
 
-> O Wokwi **não mede potência** - os valores abaixo vêm das e de um modelo de duty cycle (datasheet ESP32).
+> O Wokwi **não mede potência** - os valores abaixo vêm de referências reais e de um modelo de duty cycle (datasheet ESP32).
 
 O firmware aplica **duty cycle + deep sleep** por um toggle
 `USE_DEEP_SLEEP` em [`src/firmware.ino`](src/firmware.ino):

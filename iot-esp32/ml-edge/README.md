@@ -69,7 +69,7 @@ Reprodutível (seed fixa `42`) — roda do zero e produz sempre o mesmo modelo.
 
 Números completos e matriz de confusão em [`metrics.txt`](metrics.txt).
 
-## Integração no backend (Entregável B)
+## Integração no backend
 Carregar uma vez no startup e predizer respeitando a ordem das features:
 ```python
 import joblib, numpy as np
