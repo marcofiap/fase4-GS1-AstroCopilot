@@ -5,12 +5,6 @@ Gera um dataset SINTÉTICO físico-plausível, rotula segundo a política de ris
 da missão (os mesmos limiares de `backend/main.py:classify_risk`) e treina um
 RandomForest que substitui as regras no backend.
 
-Por que sintético (e não um dataset real):
-  - Os rótulos `normal/fadiga/risco` são política DESTA missão; nenhum dataset
-    público vem rotulado assim — seria rotulado por regra de qualquer forma.
-  - `radiation` (µSv/h) é específico do espaço; dataset terrestre não tem.
-  - Dado real de astronauta (NASA LSDA) é restrito/privado.
-
 Por que NÃO vira "if/else disfarçado":
   - As features são amostradas de forma FÍSICO-PLAUSÍVEL e CORRELACIONADA
     (estresse alto → HR/resp sobem, SpO2 cai, temp sobe) via uma variável

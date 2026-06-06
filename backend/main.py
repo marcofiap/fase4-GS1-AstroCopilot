@@ -20,14 +20,26 @@ import asyncio
 import os
 import random
 import sys
+import threading
 import time
+from collections import deque
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import joblib
-from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 import db
@@ -152,6 +164,11 @@ _crew_state: dict[str, dict] = {
 # enquanto for recente, o stream WS reenvia o dado real em vez de simular.
 REAL_TELEMETRY_TTL_S = 10.0
 _last_real: dict[str, float] = {}
+
+# Frente 4: "monitor serial" da simulação espelhado pelo ESP32 via GET /terminal_log.
+# Buffer circular em memória; exposto por /terminal_logs (JSON) e /terminal_stream (SSE).
+_terminal_log: deque[str] = deque(maxlen=1000)
+_terminal_lock = threading.Lock()
 
 
 # --------------------------------------------------------------------------- #
@@ -409,25 +426,110 @@ async def vision(image: UploadFile = File(...)) -> VisionResponse:
 # --------------------------------------------------------------------------- #
 #  Telemetria do ESP32  (Frente 4) — por tripulante, com mais sensores
 # --------------------------------------------------------------------------- #
+def _ingest_telemetry(crew_id, hr, spo2, temp, accel,
+                      resp=None, radiation=None, battery=None, ts=None) -> dict:
+    """Núcleo compartilhado pelo POST (JSON) e pelo GET (query params) de telemetria.
+
+    Atualiza o estado do tripulante, classifica o risco e marca a leitura como
+    REAL (prioridade sobre a simulação por TTL). Campos opcionais (resp,
+    radiation, battery) ausentes mantêm o valor atual.
+    """
+    if crew_id not in _crew_state:
+        raise HTTPException(status_code=404, detail=f"Tripulante '{crew_id}' não existe")
+    cur = _crew_state[crew_id]
+    state = apply_vitals(
+        crew_id,
+        hr=hr, spo2=spo2, temp=temp, accel=accel,
+        resp=resp if resp is not None else cur["resp"],
+        radiation=radiation if radiation is not None else cur["radiation"],
+        battery=battery if battery is not None else cur["battery"],
+        ts=ts,
+    )
+    _last_real[crew_id] = time.monotonic()  # marca como dado real recente (Frente 4)
+    return state
+
+
 @app.post("/api/telemetry", response_model=TelemetryAck)
 def telemetry(t: Telemetry) -> TelemetryAck:
-    """Recebe leitura do wearable ESP32 de um tripulante, classifica e guarda.
-
-    Campos opcionais (resp, radiation, battery) ausentes mantêm o valor atual.
-    """
-    if t.crew_id not in _crew_state:
-        raise HTTPException(status_code=404, detail=f"Tripulante '{t.crew_id}' não existe")
-    cur = _crew_state[t.crew_id]
-    state = apply_vitals(
-        t.crew_id,
-        hr=t.hr, spo2=t.spo2, temp=t.temp, accel=t.accel,
-        resp=t.resp if t.resp is not None else cur["resp"],
-        radiation=t.radiation if t.radiation is not None else cur["radiation"],
-        battery=t.battery if t.battery is not None else cur["battery"],
-        ts=t.ts,
+    """Recebe leitura do wearable ESP32 (JSON), classifica e guarda."""
+    state = _ingest_telemetry(
+        t.crew_id, t.hr, t.spo2, t.temp, t.accel,
+        resp=t.resp, radiation=t.radiation, battery=t.battery, ts=t.ts,
     )
-    _last_real[t.crew_id] = time.monotonic()  # marca como dado real recente (Frente 4)
     return TelemetryAck(status="ok", crew_id=t.crew_id, risk_level=state["risk_level"])
+
+
+@app.get("/api/telemetry", response_model=TelemetryAck)
+def telemetry_get(
+    crew_id: str = "cmdr",
+    hr: float = Query(..., description="Frequência cardíaca (bpm)"),
+    spo2: float = Query(..., description="Saturação de oxigênio (%)"),
+    temp: float = Query(..., description="Temperatura corporal (°C)"),
+    accel: float = Query(0.0, description="Magnitude de aceleração (g)"),
+    resp: Optional[float] = Query(None, description="Frequência respiratória (rpm)"),
+    radiation: Optional[float] = Query(None, description="Dose de radiação (µSv/h)"),
+    battery: Optional[float] = Query(None, description="Bateria do wearable (%)"),
+    ts: Optional[str] = Query(None, description="Timestamp ISO-8601"),
+) -> TelemetryAck:
+    """Variante GET para a simulação Wokwi.
+
+    O ESP32 envia a telemetria via WiFi + HTTP GET (mesmo padrão dos projetos
+    FarmTech): `/api/telemetry?crew_id=cmdr&hr=..&spo2=..&temp=..&accel=..&ts=..`.
+    Mesma lógica do POST — existe porque o HTTPClient do firmware manda os dados
+    como query params, e não como corpo JSON.
+    """
+    state = _ingest_telemetry(
+        crew_id, hr, spo2, temp, accel,
+        resp=resp, radiation=radiation, battery=battery, ts=ts,
+    )
+    return TelemetryAck(status="ok", crew_id=crew_id, risk_level=state["risk_level"])
+
+
+# --------------------------------------------------------------------------- #
+#  "Monitor serial" da simulação espelhado por HTTP (Frente 4)
+#  O firmware faz GET /terminal_log?line=<linha> a cada evento do Serial. Daí dá
+#  para acompanhar o monitor serial do Wokwi fora do simulador: /terminal_logs
+#  (JSON) para um snapshot e /terminal_stream (SSE) para o stream ao vivo.
+# --------------------------------------------------------------------------- #
+@app.get("/terminal_log")
+def terminal_log(line: str = "") -> PlainTextResponse:
+    """Recebe uma linha do monitor serial espelhada pelo ESP32 (query `line`)."""
+    if not line:
+        return PlainTextResponse("MISSING_LINE", status_code=400)
+    entry = f"[{datetime.now().strftime('%H:%M:%S')}] {line}"
+    with _terminal_lock:
+        _terminal_log.append(entry)
+    return PlainTextResponse("OK")
+
+
+@app.get("/terminal_logs")
+def terminal_logs(limit: int = 500) -> dict:
+    """Últimas linhas espelhadas do monitor serial da simulação (snapshot JSON)."""
+    with _terminal_lock:
+        lines = list(_terminal_log)[-limit:]
+    return {"lines": lines, "count": len(lines)}
+
+
+@app.get("/terminal_stream")
+async def terminal_stream() -> StreamingResponse:
+    """Stream SSE do monitor serial espelhado — abra no navegador p/ ver ao vivo."""
+
+    async def gen():
+        last = 0
+        while True:
+            with _terminal_lock:
+                lines = list(_terminal_log)
+            if len(lines) > last:
+                for ln in lines[last:]:
+                    yield f"data: {ln}\n\n"
+                last = len(lines)
+            await asyncio.sleep(0.5)
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.websocket("/ws/telemetry")

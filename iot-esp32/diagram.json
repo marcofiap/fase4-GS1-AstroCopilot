@@ -43,6 +43,8 @@
     }
   ],
   "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
     [ "esp:3V3", "mpu:VCC", "red", [] ],
     [ "esp:GND.1", "mpu:GND", "black", [] ],
     [ "esp:D22", "mpu:SCL", "green", [] ],

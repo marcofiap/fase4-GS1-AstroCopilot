@@ -1,19 +1,15 @@
-# Wokwi para VS Code (extensão "Wokwi Simulator").
+# Wokwi para VS Code — liga o firmware compilado pelo PlatformIO ao diagram.json.
 # Docs: https://docs.wokwi.com/vscode/getting-started
-# A extensão carrega o diagram.json DESTA pasta e o firmware compilado abaixo.
 #
-# Compile antes de simular (gera ./build com .bin + .elf):
-#   pwsh ./build.ps1
-#   # ou, a partir de iot-esp32/:
-#   arduino-cli core install esp32:esp32
-#   arduino-cli lib install "Adafruit MPU6050" "Adafruit Unified Sensor" "Adafruit BusIO" OneWire DallasTemperature
-#   arduino-cli compile --fqbn esp32:esp32:esp32doit-devkit-v1 --output-dir wokwi/build firmware/firmware.ino
+# Os caminhos são relativos a este arquivo (raiz do projeto PlatformIO, iot-esp32/).
+# Compile antes com `pio run`; a extensão lê o .bin/.elf de .pio/build/<env>/.
+# O diagram.json fica nesta mesma pasta (a extensão o procura ao lado do wokwi.toml).
 #
-# Iniciar a simulação:  Ctrl+Shift+P -> "Wokwi: Start Simulator".
-
+# O ESP32 simulado conecta no WiFi `Wokwi-GUEST` e envia a telemetria por HTTP GET
+# direto ao backend (http://<host>:8000/api/telemetry) — ver src/firmware.ino.
+# Não há mais ponte serial (rfc2217ServerPort foi removido): a extensão Wokwi do
+# VS Code dá ao ESP32 acesso de rede ao host (use o IP da sua LAN em SERVIDORES[]).
 [wokwi]
 version = 1
-# ESP32: .bin único com bootloader + tabela de partição + app (merged).
-firmware = 'build/firmware.ino.merged.bin'
-# ELF com símbolos: pinos nomeados no diagrama, stack trace e debug GDB.
-elf = 'build/firmware.ino.elf'
+firmware = ".pio/build/esp32doit-devkit-v1/firmware.bin"
+elf = ".pio/build/esp32doit-devkit-v1/firmware.elf"
