@@ -120,11 +120,11 @@ story.append(Paragraph("Global Solution 2026.1 — FIAP · 2º ano de Inteligên
 
 integrantes = [
     ["Integrante", "RM", "Frente"],
-    ["Felipe Sabino da Silva", "RM______", "F1 — Agente LLM + RAG + Scraping"],
+    ["Felipe Sabino da Silva", "RM563569", "F1 — Agente LLM + RAG + Scraping"],
     ["Juan Felipe Voltolini", "RM562890", "F2 — NLP & Voz"],
-    ["Luiz Henrique Ribeiro de Oliveira", "RM______", "F4 — IoT ESP32 + Edge + ML"],
-    ["Marco Aurelio Eberhardt Assumpção", "RM______", "F5 — Backend / Dashboard / DevOps"],
-    ["Paulo Henrique Senise", "RM______", "F3 — Visão Computacional"],
+    ["Luiz Henrique Ribeiro de Oliveira", "RM563077", "F4 — IoT ESP32 + Edge + ML"],
+    ["Marco Aurélio Eberhardt Assumpção", "RM563348", "F5 — Backend / Dashboard / DevOps"],
+    ["Paulo Henrique Senise", "RM565781", "F3 — Visão Computacional"],
 ]
 t = Table(integrantes, colWidths=[7.4 * cm, 2.4 * cm, 6.2 * cm])
 t.setStyle(TableStyle([
@@ -140,7 +140,7 @@ t.setStyle(TableStyle([
 ]))
 story.append(t)
 story.append(Spacer(1, 10))
-p('<i>Grupo 42 · Turma 2TIAO. Preencher os RMs faltantes antes da entrega.</i>',
+p('<i>Grupo 42 · Turma 2TIAO — 2º ano de Inteligência Artificial.</i>',
   ParagraphStyle("note", parent=BODY, fontSize=8.5, textColor=MUTED, alignment=TA_CENTER))
 story.append(Spacer(1, 8))
 if (DIAG / "arquitetura.png").exists():

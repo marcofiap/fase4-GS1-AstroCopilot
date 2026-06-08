@@ -10,13 +10,13 @@
 
 ## Integrantes — Grupo 42
 
-| Integrante | GitHub | Frente |
-|------------|--------|-------------------|
-| Felipe Sabino da Silva | [@FelipeSabinoTMRS](https://github.com/FelipeSabinoTMRS) | Frente 1 — Agente LLM + RAG + Scraping |
-| Juan Felipe Voltolini | [@juanvoltolini-rm562890](https://github.com/juanvoltolini-rm562890) | Frente 2 — NLP & Voz |
-| Luiz Henrique Ribeiro de Oliveira | [@Luiz-FIAP](https://github.com/Luiz-FIAP) | Frente 4 — IoT ESP32 + Edge + ML |
-| Marco Aurelio Eberhardt Assumpção | [@marcofiap](https://github.com/marcofiap) | Frente 5 — Backend / Dashboard / DevOps |
-| Paulo Henrique Senise | [@PauloSenise](https://github.com/PauloSenise) | Frente 3 — Visão Computacional |
+| Integrante | RM | GitHub | Frente |
+|------------|----|--------|-------------------|
+| Felipe Sabino da Silva | RM563569 | [@FelipeSabinoTMRS](https://github.com/FelipeSabinoTMRS) | Frente 1 — Agente LLM + RAG + Scraping |
+| Juan Felipe Voltolini | RM562890 | [@juanvoltolini-rm562890](https://github.com/juanvoltolini-rm562890) | Frente 2 — NLP & Voz |
+| Luiz Henrique Ribeiro de Oliveira | RM563077 | [@Luiz-FIAP](https://github.com/Luiz-FIAP) | Frente 4 — IoT ESP32 + Edge + ML |
+| Marco Aurélio Eberhardt Assumpção | RM563348 | [@marcofiap](https://github.com/marcofiap) | Frente 5 — Backend / Dashboard / DevOps |
+| Paulo Henrique Senise | RM565781 | [@PauloSenise](https://github.com/PauloSenise) | Frente 3 — Visão Computacional |
 
 ---
 
