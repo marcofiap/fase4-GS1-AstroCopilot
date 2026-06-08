@@ -1,0 +1,5 @@
+# Dependências para (re)gerar a documentação visual (Frente 5 / docs)
+# Uso:  pip install -r docs/requirements.txt
+reportlab
+matplotlib
+pypdf
