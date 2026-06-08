@@ -261,6 +261,24 @@ p('Além de orquestrar as frentes, esta frente entrega: <b>governança de IA</b>
   'real do ESP32 tem prioridade sobre a simulação no stream em tempo real.')
 story.extend(code("backend/main.py", extract_function("backend/main.py", "_log_alert")))
 
+# 2.8 Interfaces
+h2("2.8 Interfaces desenvolvidas (dashboard)")
+p('O centro de controle web reúne, em tema "mission control", a telemetria ao vivo dos três '
+  'tripulantes (cards com risco + gráficos de frequência cardíaca e radiação) e o Copiloto, '
+  'com entrada por voz (wake word "Astro") e por texto. Páginas dedicadas trazem a análise de '
+  'imagem, o log de alertas e a trilha de auditoria.')
+for fname, cap in [
+    ("dashboard.png", "Figura 3 — Dashboard: telemetria ao vivo de 3 tripulantes + Copiloto (RAG)."),
+    ("auditoria.png", "Figura 4 — Trilha de auditoria: cada decisão do agente é registrada (governança)."),
+]:
+    if (DIAG / fname).exists():
+        im = Image(str(DIAG / fname))
+        im._restrictSize(16 * cm, 10 * cm)
+        im.hAlign = "CENTER"
+        story.append(im)
+        story.append(Paragraph(cap, CAP))
+        story.append(Spacer(1, 6))
+
 # --------------------------------------------------------------------------- #
 #  3. RESULTADOS ESPERADOS
 # --------------------------------------------------------------------------- #
