@@ -17,8 +17,9 @@ chromadb
 requests
 python-dotenv
 
-# Frente 2: STT (faster-whisper) + TTS (gTTS) — voice-nlp/pipeline.py
+# Frente 2: STT (faster-whisper) + TTS (edge-tts / gTTS) — voice-nlp/pipeline.py
 faster-whisper
+edge-tts
 gTTS
 Pillow
 ultralytics

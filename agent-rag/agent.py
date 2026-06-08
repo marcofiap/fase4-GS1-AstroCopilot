@@ -12,7 +12,15 @@ AWS tradicionais. Os embeddings (Titan) sao chamados via HTTP em embeddings.py.
 from __future__ import annotations
 
 import os
+import re
+import sys
 from functools import lru_cache
+from pathlib import Path
+
+# Add current folder to sys.path to resolve imports when executed or analyzed from outside agent-rag
+_CURRENT_DIR = str(Path(__file__).resolve().parent)
+if _CURRENT_DIR not in sys.path:
+    sys.path.insert(0, _CURRENT_DIR)
 
 import chromadb
 from strands import Agent, tool
@@ -25,15 +33,87 @@ import embeddings
 if config.BEDROCK_API_KEY:
     os.environ.setdefault("AWS_BEARER_TOKEN_BEDROCK", config.BEDROCK_API_KEY)
 
+GET_CREW_STATE_CALLBACK = None
+
+def register_crew_callback(callback):
+    """Permite ao backend registrar uma função para expor a telemetria em tempo real."""
+    global GET_CREW_STATE_CALLBACK
+    GET_CREW_STATE_CALLBACK = callback
+
 SYSTEM_PROMPT = (
-    "Voce e o AstroCopilot, copiloto de bordo de uma tripulacao espacial. "
-    "Para qualquer pergunta tecnica ou operacional, use sempre a ferramenta "
-    "buscar_documentos para recuperar trechos dos manuais antes de responder. "
-    "Responda em portugues do Brasil, de forma objetiva e direta, apenas com base "
-    "nos trechos recuperados, e cite as fontes utilizadas no final. Se os trechos "
-    "nao cobrirem a pergunta, diga com clareza que nao encontrou a informacao nos "
-    "manuais disponiveis, sem inventar."
+    "Voce e o Astro (AstroCopilot), copiloto de bordo. Use buscar_documentos ou verificar_dados_tripulacao antes de responder.\n\n"
+    "REGRAS OBRIGATORIAS (violacao nao permitida):\n"
+    "1) MAXIMO 2 frases de conteudo + 1 frase final em forma de pergunta sobre como prosseguir.\n"
+    "2) PROIBIDO: listas com bullet, numeracao, mais de 80 palavras no total, paragrafos longos, "
+    "pedir ao usuario para consultar outros manuais ou dar orientacoes genericas longas.\n"
+    "3) Se nao houver procedimento nos trechos: diga em UMA frase e pergunte como prosseguir.\n"
+    "4) Fontes: uma linha curta no final, ex.: Fontes: NTRS X, NTRS Y.\n"
+    "5) Pergunta final: Crie uma pergunta final curta (maximo 12 palavras), adaptada ao contexto da "
+    "pergunta do usuario e da resposta dada, ajudando a guiar os proximos passos. Evite repetir sempre a mesma pergunta padrao. "
+    "Ela DEVE terminar com '?' e ser a ultima frase da resposta.\n"
+    "Portugues do Brasil, tom calmo e direto."
 )
+
+VOICE_PROMPT_ADDENDUM = (
+    "\n\nCanal VOZ: MAXIMO 50 palavras no total. Sem listas. Duas frases + pergunta final."
+)
+
+PROCEED_QUESTION = "Como prefere continuar: detalhar mais, ver passos críticos ou outro tema?"
+
+
+def _enforce_brevity(answer: str, channel: str) -> str:
+    """Garante resposta curta mesmo se o LLM extrapolar."""
+    texto = re.sub(r"\*\*|__|\*|_", "", answer)
+    texto = re.sub(r"\n+", " ", texto)
+    texto = re.sub(r"\s+", " ", texto).strip()
+
+    max_chars = 280 if (channel or "text").lower() == "voice" else 420
+    partes = re.split(r"(?<=[.!?])\s+", texto)
+    
+    content_sentences: list[str] = []
+    question_sentences: list[str] = []
+
+    for parte in partes:
+        p = parte.strip()
+        if not p:
+            continue
+        if re.match(r"^[-•*]\s", p) or p.count(":") > 1:
+            continue
+        if p.endswith("?"):
+            question_sentences.append(p)
+        else:
+            content_sentences.append(p)
+
+    selected_content = content_sentences[:2]
+
+    if question_sentences:
+        question = question_sentences[0]
+    else:
+        question = PROCEED_QUESTION
+
+    saida = selected_content + [question]
+    resultado = " ".join(saida).strip()
+
+    if len(resultado) > max_chars:
+        if len(selected_content) > 1:
+            selected_content = selected_content[:1]
+            saida = selected_content + [question]
+            resultado = " ".join(saida).strip()
+        
+        if len(resultado) > max_chars:
+            max_content_len = max_chars - len(question) - 8
+            if max_content_len > 0:
+                content_text = " ".join(selected_content)
+                if len(content_text) > max_content_len:
+                    words = content_text[:max_content_len].rsplit(" ", 1)
+                    truncated_content = words[0] if len(words) > 1 else content_text[:max_content_len]
+                else:
+                    truncated_content = content_text
+                resultado = truncated_content.rstrip(".!? ") + ". " + question
+            else:
+                resultado = question
+
+    return resultado
 
 
 @lru_cache(maxsize=1)
@@ -43,7 +123,7 @@ def _modelo() -> BedrockModel:
         model_id=config.MODEL_ID,
         region_name=config.AWS_REGION,
         temperature=0.2,
-        max_tokens=1024,
+        max_tokens=280,
         streaming=False,
     )
 
@@ -60,10 +140,17 @@ def _colecao():
         ) from exc
 
 
-def query(text: str) -> dict:
-    """Responde uma pergunta usando RAG. Retorna {'answer': str, 'sources': list[str]}."""
+def query(text: str, channel: str = "text") -> dict:
+    """Responde uma pergunta usando RAG. Retorna {'answer': str, 'sources': list[str]}.
+
+    channel: 'text' | 'voice' — em voz as respostas ficam ainda mais curtas.
+    """
     if not config.configurado():
         raise RuntimeError("RAG nao configurado (API key ou base vetorial ausente).")
+
+    prompt = SYSTEM_PROMPT
+    if (channel or "text").lower() == "voice":
+        prompt += VOICE_PROMPT_ADDENDUM
 
     fontes: list[str] = []
 
@@ -74,23 +161,67 @@ def query(text: str) -> dict:
             query_embeddings=[embeddings.embed(consulta)],
             n_results=config.TOP_K,
         )
-        documentos = resultado["documents"][0]
-        metadados = resultado["metadatas"][0]
-        if not documentos:
+        documentos = resultado.get("documents")
+        metadados = resultado.get("metadatas")
+        docs_list = documentos[0] if documentos is not None else []
+        metas_list = metadados[0] if metadados is not None else []
+        if not docs_list:
             return "Nenhum trecho encontrado nos manuais."
 
         blocos = []
-        for texto, meta in zip(documentos, metadados):
-            etiqueta = f"{meta.get('titulo', 'Documento')} (NTRS {meta.get('ntrs_id', '?')})"
+        for texto, meta in zip(docs_list, metas_list):
+            meta_dict = meta or {}
+            etiqueta = f"{meta_dict.get('titulo', 'Documento')} (NTRS {meta_dict.get('ntrs_id', '?')})"
             if etiqueta not in fontes:
                 fontes.append(etiqueta)
             blocos.append(f"[Fonte: {etiqueta}]\n{texto}")
         return "\n\n".join(blocos)
 
-    agente = Agent(model=_modelo(), system_prompt=SYSTEM_PROMPT, tools=[buscar_documentos])
-    resposta = str(agente(text)).strip()
-    return {"answer": resposta, "sources": fontes}
+    @tool
+    def verificar_dados_tripulacao() -> str:
+        """Verifica a telemetria e os dados de saúde mais recentes de toda a tripulação (batimentos, SpO2, temperatura, respiração, radiação, status de risco e bateria)."""
+        if "Telemetria em Tempo Real" not in fontes:
+            fontes.append("Telemetria em Tempo Real")
 
+        crew_list = None
+        if GET_CREW_STATE_CALLBACK is not None:
+            try:
+                crew_list = GET_CREW_STATE_CALLBACK()
+            except Exception:
+                pass
+
+        if not crew_list:
+            try:
+                import requests
+                r = requests.get("http://127.0.0.1:8000/api/crew", timeout=1.0)
+                if r.status_code == 200:
+                    crew_list = r.json().get("crew")
+            except Exception:
+                pass
+
+        if not crew_list:
+            return "Não foi possível obter os dados da tripulação no momento."
+
+        lines = []
+        for c in crew_list:
+            lines.append(
+                f"- {c['name']} ({c['role']}): "
+                f"Batimentos: {c['hr']} bpm, "
+                f"SpO2: {c['spo2']}%, "
+                f"Temp: {c['temp']}°C, "
+                f"Resp: {c['resp']} rpm, "
+                f"Radiação: {c['radiation']} µSv/h, "
+                f"Bateria: {c['battery']}%, "
+                f"Status: {c['risk_level']}"
+            )
+        return "\n".join(lines)
+
+    agente = Agent(model=_modelo(), system_prompt=prompt, tools=[buscar_documentos, verificar_dados_tripulacao])
+    entrada = text
+    if (channel or "text").lower() == "voice":
+        entrada = f"[Limite: 50 palavras, sem listas]\n{text}"
+    resposta = _enforce_brevity(str(agente(entrada)).strip(), channel)
+    return {"answer": resposta, "sources": fontes}
 
 if __name__ == "__main__":
     # Teste rapido pela linha de comando: python agent.py "sua pergunta"

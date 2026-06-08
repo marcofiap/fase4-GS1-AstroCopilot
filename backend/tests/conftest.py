@@ -6,9 +6,12 @@ import db
 import main
 
 
-def _fake_rag(text: str) -> dict:
+def _fake_rag(text: str, channel: str = "text") -> dict:
     """Cadeia RAG falsa para os testes: deterministica, sem rede nem Bedrock."""
-    return {"answer": f"[teste] resposta para: {text}", "sources": ["Manual de teste (NTRS 0000)"]}
+    return {
+        "answer": f"[teste] resposta para: {text} (canal={channel})",
+        "sources": ["Manual de teste (NTRS 0000)"],
+    }
 
 
 @pytest.fixture()

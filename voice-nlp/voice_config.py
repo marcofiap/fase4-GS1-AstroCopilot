@@ -28,6 +28,9 @@ WHISPER_INITIAL_PROMPT = os.getenv(
 )
 WHISPER_VAD_FILTER = os.getenv("WHISPER_VAD_FILTER", "0").lower() in ("1", "true", "yes")
 
-# TTS (gTTS)
+# TTS: edge (Microsoft Neural, padrao) | gtts (fallback)
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", "edge").lower()
+TTS_VOICE = os.getenv("TTS_VOICE", "pt-BR-AntonioNeural")
+TTS_RATE = os.getenv("TTS_RATE", "+50%")
 TTS_LANG = os.getenv("TTS_LANG", "pt-br")
-TTS_MAX_CHARS = int(os.getenv("TTS_MAX_CHARS", "3500"))
+TTS_MAX_CHARS = int(os.getenv("TTS_MAX_CHARS", "900"))

@@ -89,8 +89,35 @@ body {
 .alert-msg { flex: 1; font-size: 13px; }
 .alert-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
 
-.chat { display: flex; flex-direction: column; min-height: 420px; }
-.chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+.chat {
+  display: flex; flex-direction: column; min-height: 420px;
+  visibility: visible; opacity: 1;
+}
+.chat-log {
+  flex: 1 1 auto; min-height: 160px; max-height: 380px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 8px; padding-right: 4px;
+}
+.chat-log::-webkit-scrollbar,
+.alert-log::-webkit-scrollbar,
+.audit-log::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-log::-webkit-scrollbar-track,
+.alert-log::-webkit-scrollbar-track,
+.audit-log::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-log::-webkit-scrollbar-thumb,
+.alert-log::-webkit-scrollbar-thumb,
+.audit-log::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+.chat-log::-webkit-scrollbar-thumb:hover,
+.alert-log::-webkit-scrollbar-thumb:hover,
+.audit-log::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
 .msg { padding: 8px 12px; border-radius: 10px; max-width: 90%; }
 .msg p { margin: 0; font-size: 14px; line-height: 1.4; }
 .msg.user { background: #16315c; align-self: flex-end; }
@@ -103,6 +130,10 @@ body {
 .chat-input button, .upload { cursor: pointer; }
 .chat-input button { background: var(--accent); color: #04111f; border: none; padding: 0 16px; border-radius: 8px; font-weight: 600; }
 .chat-input button:disabled { opacity: .5; }
+.chat-input button.btn-parar {
+  background: #ef4444; color: #fff;
+  animation: glow-pulse 1.2s infinite;
+}
 
 .icon-btn {
   background: #0a1024; border: 1px solid var(--border); color: var(--text);
@@ -112,7 +143,7 @@ body {
 .head-actions { display: flex; align-items: center; gap: 8px; }
 .icon-btn.wake.on {
   color: #22c55e; border-color: #22c55e;
-  animation: pulse 1.4s infinite;
+  animation: glow-pulse 1.4s infinite;
 }
 .wake-note {
   margin: 0 0 10px; padding: 8px 10px; font-size: 12px;
@@ -121,10 +152,101 @@ body {
 .wake-note b { color: #22c55e; }
 .icon-btn.mic.rec {
   background: #ef4444; color: #fff; border-color: #ef4444;
-  animation: pulse 1s infinite;
+  animation: glow-pulse 1s infinite;
 }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 10px 2px rgba(56, 189, 248, .45); }
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .85; } }
 .mic-note { margin: 8px 0 0; font-size: 11px; }
+
+.astro-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+.astro-on-btn {
+  font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--border); background: #0a1024; color: var(--muted); cursor: pointer;
+}
+.astro-on-btn.on {
+  color: #04111f; background: #22c55e; border-color: #22c55e;
+  box-shadow: 0 0 12px rgba(34, 197, 94, .35);
+  animation: glow-pulse 1.6s infinite;
+}
+.astro-on-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.pilot-chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+.pilot-chip {
+  font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--border); background: #16315c; color: var(--text); cursor: pointer;
+}
+.pilot-chip:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pilot-chip.active { border-color: var(--accent); background: rgba(56, 189, 248, .15); }
+.pilot-chip:disabled { opacity: .45; cursor: wait; }
+.pilot-chip.user-chip {
+  border-color: #a78bfa; background: rgba(167, 139, 250, .12);
+}
+.pilot-chip.user-chip:hover:not(:disabled) { border-color: #c4b5fd; color: #e9d5ff; }
+.pilot-chip.user-chip.active {
+  border-color: #a78bfa; background: rgba(167, 139, 250, .25);
+}
+
+.debug-drawer {
+  margin-top: 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: #080e1c; overflow: hidden;
+}
+.debug-drawer summary {
+  padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--muted);
+  cursor: pointer; list-style: none; user-select: none;
+}
+.debug-drawer summary::-webkit-details-marker { display: none; }
+.debug-drawer[open] summary { color: var(--accent); border-bottom: 1px solid var(--border); }
+.debug-drawer-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+
+.debug-field { display: flex; flex-direction: column; gap: 6px; }
+.debug-field span { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+.debug-field select {
+  background: #0a1024; border: 1px solid var(--border); color: var(--text);
+  padding: 8px 10px; border-radius: 8px; font-size: 13px;
+}
+.debug-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.mic-feedback {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px; padding: 10px 12px;
+  background: #0a1024; border: 1px solid var(--border); border-radius: 10px;
+}
+.mic-feedback.recording { border-color: #ef4444; background: rgba(239, 68, 68, .08); }
+.mic-feedback.wake { border-color: #22c55e; background: rgba(34, 197, 94, .08); }
+
+.mic-feedback-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  background: var(--muted);
+}
+.mic-feedback.recording .mic-feedback-dot { background: #ef4444; }
+.mic-feedback.recording .mic-feedback-dot.hot { box-shadow: 0 0 8px #ef4444; }
+.mic-feedback.wake .mic-feedback-dot { background: #22c55e; animation: glow-pulse 1.4s infinite; }
+
+.mic-feedback-bars {
+  display: flex; align-items: flex-end; gap: 3px; height: 28px; flex: 1; max-width: 200px;
+}
+.mic-bar {
+  flex: 1; min-width: 4px; height: 20%; border-radius: 2px;
+  background: #1e2a44; transition: height .05s ease, background .1s;
+}
+.mic-feedback.recording .mic-bar.on { background: #ef4444; height: var(--h, 35%); }
+.mic-feedback.wake .mic-bar.on { background: #22c55e; height: 45%; animation: glow-pulse 1.2s infinite; }
+
+.mic-feedback-label { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+.mic-feedback.recording .mic-feedback-label { color: #fca5a5; }
+.mic-feedback.wake .mic-feedback-label { color: #86efac; }
+
+.astro-speaking {
+  margin: 0 0 10px; padding: 8px 10px; font-size: 12px;
+  background: rgba(56, 189, 248, .12); border: 1px solid var(--accent); border-radius: 8px;
+}
+.astro-speaking b { color: var(--accent); }
 
 .upload {
   display: flex; align-items: center; justify-content: center;

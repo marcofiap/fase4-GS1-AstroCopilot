@@ -1,18 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-// Reconhecimento de fala (STT) e síntese de voz (TTS) via Web Speech API do
-// navegador. Funciona em Chrome/Edge sobre localhost ou HTTPS, em pt-BR.
-// A Frente 2 pode depois trocar por Whisper/servidor via POST /api/voice.
 const SpeechRecognition =
   typeof window !== 'undefined' &&
   (window.SpeechRecognition || window.webkitSpeechRecognition)
 
-// Palavra de ativação ("wake word"), como "Alexa"/"Ok Google".
-// O astronauta diz: "Astra, qual o procedimento...?" e o Copiloto responde.
-const WAKE_WORD = 'astra'
+/** Wake word: "Astro" + pergunta (ex.: "Astro, como despressurizar a cabine?"). */
+export const WAKE_WORD = 'astro'
 
-// Remove acentos e pontuação para casar a wake word de forma tolerante
-// ("Ástra," / "astra." / "Astra" → "astra").
 function normalize(s) {
   return s
     .toLowerCase()
@@ -21,18 +15,39 @@ function normalize(s) {
     .trim()
 }
 
+/** Velocidade padrão do Astro no fallback do navegador (1,5×). */
+const ASTRO_SPEECH_RATE = 1.5
+
+/** Preferência de voz masculina pt-BR no fallback do navegador (quando Edge TTS falha). */
+const MALE_PT_HINTS = /antonio|donato|daniel|male|masculin|homem|google português do brasil/i
+const FEMALE_PT_HINTS = /francisca|thalita|maria|female|feminina|mulher|luciana/i
+
+function pickPtVoice(voices, preferMale = true) {
+  const pt = voices.filter((v) => v.lang?.toLowerCase().startsWith('pt'))
+  if (!pt.length) return null
+  if (preferMale) {
+    const male = pt.find((v) => MALE_PT_HINTS.test(v.name))
+    if (male) return male
+    const notFemale = pt.find((v) => !FEMALE_PT_HINTS.test(v.name))
+    if (notFemale) return notFemale
+  }
+  return pt[0]
+}
+
 export function useSpeech({ lang = 'pt-BR', wakeWord = WAKE_WORD } = {}) {
   const [listening, setListening] = useState(false)
-  const [awake, setAwake] = useState(false) // escuta contínua pela wake word
+  const [awake, setAwake] = useState(false)
+  const [astroSpeaking, setAstroSpeaking] = useState(false)
   const recRef = useRef(null)
   const wakeRecRef = useRef(null)
-  const wakeOnRef = useRef(false) // intenção do usuário (sobrevive a reinícios)
+  const wakeOnRef = useRef(false)
   const onCommandRef = useRef(null)
+  const audioRef = useRef(null)
+  const speakGenRef = useRef(0)
 
   const sttSupported = !!SpeechRecognition
   const ttsSupported = typeof window !== 'undefined' && !!window.speechSynthesis
 
-  // ---- Captura única (botão "Falar") -------------------------------------
   function listen(onResult) {
     if (!SpeechRecognition) return
     const rec = new SpeechRecognition()
@@ -52,15 +67,42 @@ export function useSpeech({ lang = 'pt-BR', wakeWord = WAKE_WORD } = {}) {
     setListening(false)
   }
 
-  // ---- Escuta contínua pela wake word "Astra" ----------------------------
   const startWakeWord = useCallback(
     (onCommand) => {
       if (!SpeechRecognition) return
       onCommandRef.current = onCommand
       wakeOnRef.current = true
       setAwake(true)
+    },
+    [],
+  )
 
-      const rec = new SpeechRecognition()
+  const stopWakeWord = useCallback(() => {
+    wakeOnRef.current = false
+    setAwake(false)
+  }, [])
+
+  useEffect(() => {
+    if (!SpeechRecognition) return
+
+    let rec = null
+    let retryTimeout = null
+    let active = false
+
+    const startRec = () => {
+      if (!rec || active) return
+      try {
+        rec.start()
+        active = true
+      } catch (err) {
+        console.warn('Astro SpeechRecognition start failed:', err)
+      }
+    }
+
+    const shouldRun = awake && !astroSpeaking
+
+    if (shouldRun) {
+      rec = new SpeechRecognition()
       rec.lang = lang
       rec.continuous = true
       rec.interimResults = false
@@ -71,66 +113,149 @@ export function useSpeech({ lang = 'pt-BR', wakeWord = WAKE_WORD } = {}) {
         if (!last.isFinal) return
         const heard = normalize(last[0].transcript)
         const idx = heard.indexOf(wakeWord)
-        if (idx === -1) return // não disse "Astra" — ignora
-        // Tudo após a wake word vira a pergunta.
+        if (idx === -1) return
         const after = heard.slice(idx + wakeWord.length).replace(/^[\s,.:!?]+/, '')
         if (after) onCommandRef.current?.(after)
       }
 
-      // Mantém vivo: o reconhecimento contínuo encerra sozinho de tempos em
-      // tempos; reiniciamos enquanto o usuário não desligar.
-      rec.onend = () => {
-        if (wakeOnRef.current) {
-          try { rec.start() } catch { /* já iniciando */ }
-        } else {
-          setAwake(false)
-        }
-      }
       rec.onerror = (ev) => {
-        // "not-allowed"/"service-not-allowed" = sem permissão → desliga de vez.
+        console.warn('Astro SpeechRecognition error:', ev.error)
         if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
           wakeOnRef.current = false
           setAwake(false)
         }
       }
 
+      rec.onend = () => {
+        active = false
+        if (wakeOnRef.current && !astroSpeaking) {
+          retryTimeout = setTimeout(() => {
+            startRec()
+          }, 1000)
+        }
+      }
+
+      startRec()
       wakeRecRef.current = rec
-      try { rec.start() } catch { /* já ativo */ }
-    },
-    [lang, wakeWord],
-  )
+    } else {
+      wakeRecRef.current = null
+    }
 
-  const stopWakeWord = useCallback(() => {
-    wakeOnRef.current = false
-    wakeRecRef.current?.stop()
-    setAwake(false)
-  }, [])
+    return () => {
+      if (retryTimeout) clearTimeout(retryTimeout)
+      if (rec) {
+        rec.onresult = null
+        rec.onerror = null
+        rec.onend = null
+        try {
+          rec.abort()
+        } catch (err) {
+          // ignore
+        }
+      }
+    }
+  }, [awake, astroSpeaking, lang, wakeWord])
 
-  // Limpa ao desmontar.
   useEffect(() => {
     return () => {
-      wakeOnRef.current = false
-      wakeRecRef.current?.stop()
       recRef.current?.stop()
     }
   }, [])
 
-  // ---- Síntese de voz (TTS) ----------------------------------------------
-  function speak(text) {
-    if (!ttsSupported) return
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = lang
-    window.speechSynthesis.speak(u)
+  const endSpeaking = useCallback((gen) => {
+    if (gen === speakGenRef.current) setAstroSpeaking(false)
+  }, [])
+
+  const stopPlayback = useCallback(() => {
+    speakGenRef.current += 1
+    const audio = audioRef.current
+    if (audio) {
+      audio.onended = null
+      audio.onerror = null
+      audio.pause()
+      audio.currentTime = 0
+      audioRef.current = null
+    }
+    if (ttsSupported) window.speechSynthesis.cancel()
+  }, [ttsSupported])
+
+  const cancelSpeak = useCallback(() => {
+    stopPlayback()
+    setAstroSpeaking(false)
+  }, [stopPlayback])
+
+  const stopPlaybackRef = useRef(stopPlayback)
+  stopPlaybackRef.current = stopPlayback
+
+  useEffect(() => {
+    return () => {
+      stopPlaybackRef.current()
+      setAstroSpeaking(false)
+    }
+  }, [])
+
+  function speak(text, { preferMale = true } = {}) {
+    if (!ttsSupported) return Promise.resolve()
+    stopPlayback()
+    const gen = speakGenRef.current
+    setAstroSpeaking(true)
+    return new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(text)
+      u.lang = lang
+      u.rate = ASTRO_SPEECH_RATE
+      const assignVoice = () => {
+        const picked = pickPtVoice(window.speechSynthesis.getVoices(), preferMale)
+        if (picked) u.voice = picked
+      }
+      assignVoice()
+      window.speechSynthesis.onvoiceschanged = assignVoice
+      u.onend = () => {
+        window.speechSynthesis.onvoiceschanged = null
+        endSpeaking(gen)
+        resolve()
+      }
+      u.onerror = () => {
+        window.speechSynthesis.onvoiceschanged = null
+        endSpeaking(gen)
+        resolve()
+      }
+      window.speechSynthesis.speak(u)
+    })
   }
 
-  function cancelSpeak() {
-    if (ttsSupported) window.speechSynthesis.cancel()
-  }
+  const playAudioUrl = useCallback((url) => {
+    if (!url) return Promise.resolve()
+    stopPlayback()
+    const gen = speakGenRef.current
+    setAstroSpeaking(true)
+    const audio = new Audio(url)
+    audioRef.current = audio
+    return new Promise((resolve) => {
+      const finish = () => {
+        if (gen !== speakGenRef.current) {
+          resolve()
+          return
+        }
+        audioRef.current = null
+        endSpeaking(gen)
+        resolve()
+      }
+      audio.onended = finish
+      audio.onerror = () => {
+        endSpeaking(gen)
+        resolve()
+      }
+      audio.play().catch(() => {
+        endSpeaking(gen)
+        resolve()
+      })
+    })
+  }, [stopPlayback, endSpeaking])
 
   return {
     listening,
     awake,
+    astroSpeaking,
     sttSupported,
     ttsSupported,
     listen,
@@ -138,6 +263,7 @@ export function useSpeech({ lang = 'pt-BR', wakeWord = WAKE_WORD } = {}) {
     startWakeWord,
     stopWakeWord,
     speak,
+    playAudioUrl,
     cancelSpeak,
   }
 }

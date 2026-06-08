@@ -32,7 +32,7 @@ npm run dev                 # http://localhost:5173
 - `src/pages/AlertsPage.jsx` — página de log de alertas
 - `src/pages/AuditPage.jsx` — página da trilha de auditoria do agente
 - `src/hooks/useTelemetry.js` — conexão WebSocket `/ws/telemetry`
-- `src/hooks/useSpeech.js` — voz no navegador (STT/TTS + wake word "Astra")
+- `src/hooks/useSpeech.js` — voz no navegador (STT/TTS + wake word "Astro")
 - `src/components/TelemetryPanel.jsx` — cards da tripulação + gráficos (Recharts: linha de FC e área de radiação)
 - `src/components/ChatPanel.jsx` — chat com o agente (`/api/agent/query`) + entrada/saída de voz
 - `src/components/VisionPanel.jsx` — upload de imagem (`/api/vision`)
@@ -41,7 +41,7 @@ npm run dev                 # http://localhost:5173
 
 ## Funcionalidades
 - **Telemetria ao vivo** de 3 tripulantes (WebSocket `/ws/telemetry` + Recharts: FC, SpO₂, temperatura, respiração, radiação, bateria).
-- **Copiloto (RAG)** por texto **ou voz**: ative dizendo a wake word **"Astra"** (escuta contínua) e ouça a resposta em áudio — acessível para tripulantes com dificuldade visual. Usa a Web Speech API do navegador (Chrome/Edge), com fallback para texto.
+- **Copiloto (RAG)** por texto **ou voz**: ative **Astro On** e diga **"Astro" + pergunta** (escuta contínua); resposta em áudio via servidor (Edge TTS).
 - **Análise de imagem** de painéis/instrumentos (`POST /api/vision`).
 - **Log de alertas** com registro a cada escalonamento de risco.
 

@@ -6,9 +6,9 @@ Transforma fala em texto, consulta o agente RAG e devolve resposta falada em PT-
 
 1. **STT** — Whisper (`faster-whisper`) converte o audio em texto.
 2. **Agente** — o backend chama a mesma cadeia RAG da Frente 1 (`agent-rag/agent.py`).
-3. **TTS** — `gTTS` gera MP3 da resposta.
+3. **TTS** — **Edge Neural** (`pt-BR-AntonioNeural`, +18% velocidade) gera MP3; fallback `gTTS`.
 4. **Intencao** — classificador MVP (`intent.py`): `pergunta` | `status` | `emergencia`.
-5. **API** — exposto em `POST /api/voice` pelo backend.
+5. **API** — `POST /api/voice` (ciclo completo) e `POST /api/tts` (so a resposta falada).
 
 ## Estrutura
 
@@ -18,11 +18,12 @@ Transforma fala em texto, consulta o agente RAG e devolve resposta falada em PT-
 | `run_rag.py` | Atalho CLI para agent/ingest com `.env` da raiz |
 | `voice_config.py` | Modelo Whisper, idioma, pastas de cache |
 | `stt.py` | Transcricao de audio |
-| `tts.py` | Sintese de voz (MP3) |
+| `tts.py` | Sintese de voz (Edge neural ou gTTS) |
 | `intent.py` | Classificador de intencao (regras) |
 | `pipeline.py` | Orquestra STT → agente → TTS |
 | `samples/` | Audios de teste versionados (ex.: `audio_piloto.ogg`) |
-| `cache/` | Audios TTS gerados (nao versionado) |
+| `user_recordings.py` | Gravacoes temporarias do usuario (piloto) |
+| `cache/` | TTS, tmp STT e `user-recordings/` (nao versionado) |
 
 ## Pre-requisitos
 
@@ -67,23 +68,74 @@ python pipeline.py samples/audio_piloto.ogg
 
 Usa um agente mock. Para testar com RAG real, use a API abaixo.
 
-## Teste via API (integracao completa)
+## Como rodar backend + dashboard (proximo dev)
 
-```bash
+A Frente 2 roda **dentro do backend** (`backend/main.py` importa `voice-nlp/pipeline.py`). O dashboard (Frente 5) consome a API. Use **dois terminais**.
+
+### Terminal 1 — API (obrigatorio)
+
+Na **raiz** do repositorio, com o venv ativo:
+
+```powershell
+cd C:\caminho\para\fase4-GS1-AstroCopilot
+.\.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt -r voice-nlp\requirements.txt
 cd backend
 uvicorn main:app --reload
 ```
 
-No Swagger (`http://localhost:8000/docs`), em **POST /api/voice**, envie `voice-nlp/samples/audio_piloto.ogg`.
+- Swagger: http://127.0.0.1:8000/docs
+- **Nao** rode `uvicorn` dentro de `voice-nlp/` — nao existe `main.py` ali (`Could not import module "main"`).
 
-Ou pela linha de comando (na raiz do projeto, com o backend rodando):
+Ao subir, o log deve mostrar RAG e voz carregados (sem `[Frente 2] Voz indisponivel`).
+
+### Terminal 2 — Dashboard (UI)
+
+```powershell
+cd dashboard
+npm install
+npm run dev
+```
+
+- Painel: http://localhost:5173
+- API padrao: `http://localhost:8000` (ver `dashboard/.env.example` → copie para `.env` se precisar mudar a URL)
+- Navegador: **Chrome ou Edge** (wake word e gravacao de voz)
+
+### Testar voz no dashboard
+
+Na pagina inicial, card **Copiloto (RAG)**:
+
+| Acao | Botao / campo |
+|------|----------------|
+| Mesmo teste das amostras OGG | **Piloto 1**, **Piloto 2**, **Piloto 3** |
+| Gravar pergunta ao vivo | **Gravar voz** (parar gravacao envia ao Whisper) |
+| Pergunta por texto | campo de texto + **Enviar** |
+| Wake word | **Astro On** → diga *"Astro, ..."* + pergunta |
+| Ouvir resposta em PT-BR (Edge neural) | **Voz: ON** |
+
+Fluxo: audio ou texto → `POST /api/voice` ou `/api/agent/query` + `/api/tts` → resposta no chat → MP3 reproduzido pelo navegador.
+
+### Onde ficam os MP3 gerados
+
+| Uso | Caminho |
+|-----|---------|
+| Disco | `voice-nlp/cache/tts/<uuid>.mp3` (nao versionado, `.gitignore`) |
+| URL | `http://127.0.0.1:8000/media/voice/<uuid>.mp3` (campo `answer_audio_url` no JSON) |
+| Audio temporario do STT | `voice-nlp/cache/tmp/` (apagado apos transcrever) |
+| Gravacoes do usuario | `voice-nlp/cache/user-recordings/` (ate 8; chips **Minha voz** no dashboard) |
+
+## Teste via API (curl / Swagger)
+
+Com o backend rodando (terminal 1 acima).
+
+Swagger: **POST /api/voice** → envie `voice-nlp/samples/audio_piloto.ogg`.
 
 ```powershell
 # Na raiz do projeto:
-curl.exe -X POST "http://localhost:8000/api/voice" -F "audio=@voice-nlp/samples/audio_piloto.ogg;type=audio/ogg"
+curl.exe -X POST "http://127.0.0.1:8000/api/voice" -F "audio=@voice-nlp/samples/audio_piloto.ogg;type=audio/ogg"
 
 # Se o terminal estiver em voice-nlp/:
-curl.exe -X POST "http://localhost:8000/api/voice" -F "audio=@samples/audio_piloto.ogg;type=audio/ogg"
+curl.exe -X POST "http://127.0.0.1:8000/api/voice" -F "audio=@samples/audio_piloto.ogg;type=audio/ogg"
 ```
 
 Resposta esperada:
@@ -98,13 +150,38 @@ Resposta esperada:
 }
 ```
 
-Reproduza o audio: `http://localhost:8000` + `answer_audio_url`.
+Reproduza o audio: `http://127.0.0.1:8000` + `answer_audio_url`.
 
 ## Variaveis de ambiente (opcionais)
 
-Ver `voice-nlp/.env.example`. Podem ficar no `.env` da raiz do projeto.
+No `.env` da raiz:
+
+| Variavel | Padrao | Descricao |
+|----------|--------|-----------|
+| `TTS_PROVIDER` | `edge` | `edge` (neural) ou `gtts` |
+| `TTS_VOICE` | `pt-BR-AntonioNeural` | Voz do Astro (ex.: `pt-BR-FranciscaNeural`) |
+| `TTS_RATE` | `+18%` | Velocidade da fala (`+10%` … `+30%`) |
+| `TTS_MAX_CHARS` | `2200` | Limite de texto sintetizado (mais rapido) |
 
 ## MVP vs. Stretch
 
 - **MVP:** ciclo voz → texto → resposta RAG → voz em PT-BR + intencao por regras.
 - **Stretch:** emocao/estresse na voz; ElevenLabs; modelo de intencao treinado.
+
+## Como Funciona a Infraestrutura (Local vs. Nuvem)
+
+Aqui está um resumo de quais serviços rodam localmente e quais dependem da internet:
+
+1. **Processamento do LLM (Texto ➔ Texto)**:
+   * **Serviço**: Claude 3.5 Haiku via AWS Bedrock.
+   * **Execução**: **Online** (consome tokens e requer a chave Bedrock).
+
+2. **Transcrição de Áudio (STT - Áudio ➔ Texto)**:
+   * **Serviço**: Whisper (`faster-whisper`).
+   * **Execução**: **100% Local** (roda na CPU/GPU do próprio computador do usuário, sem custos e sem enviar dados de voz à internet).
+
+3. **Resposta por Voz (TTS - Texto ➔ Áudio)**:
+   * **Provedor Padrão**: Microsoft Edge Neural TTS.
+     * **Execução**: **Online** (faz requisições às APIs públicas de voz do Microsoft Edge; é 100% gratuito e não consome chave).
+   * **Provedor Fallback**: Google TTS (`gtts`).
+     * **Execução**: **Online** (faz requisições web ao serviço do Google Tradutor; é gratuito, mas produz uma voz mais robótica/metalizada).

@@ -48,3 +48,7 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Lixo de ferramentas locais (Cursor/terminais)
+terminals/
+pyrightconfig.json
