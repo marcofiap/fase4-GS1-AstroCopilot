@@ -20,12 +20,26 @@ import asyncio
 import os
 import random
 import sys
+import threading
+import time
+from collections import deque
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
-from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+import joblib
+from fastapi import (
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 import db
@@ -88,8 +102,12 @@ except Exception as exc:  # pragma: no cover - depende do ambiente
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Inicialização da app: garante que as tabelas do SQLite existam."""
+    """Inicialização da app: tabelas do SQLite + modelo de risco (Frente 4)."""
     db.init_db()
+    if load_model():
+        print(f"[startup] Modelo de risco (ML) carregado de {_MODEL_PATH}")
+    else:
+        print(f"[startup] model.pkl ausente em {_MODEL_PATH} — usando regras (fallback)")
     yield
 
 
@@ -150,19 +168,77 @@ _crew_state: dict[str, dict] = {
     for cid, info in CREW.items()
 }
 
+# Frente 4: a telemetria REAL do ESP32 tem prioridade sobre a simulação.
+# Guarda o instante (relógio monotônico) do último POST real por tripulante;
+# enquanto for recente, o stream WS reenvia o dado real em vez de simular.
+REAL_TELEMETRY_TTL_S = 10.0
+_last_real: dict[str, float] = {}
 
-def classify_risk(hr: float, spo2: float, temp: float,
-                  radiation: float = 0.0, resp: float = 14.0) -> str:
-    """Classificador de risco — PLACEHOLDER baseado em regras.
+# Frente 4: "monitor serial" da simulação espelhado pelo ESP32 via GET /terminal_log.
+# Buffer circular em memória; exposto por /terminal_logs (JSON) e /terminal_stream (SSE).
+_terminal_log: deque[str] = deque(maxlen=1000)
+_terminal_lock = threading.Lock()
 
-    TODO [Frente 4]: substituir por modelo scikit-learn treinado
-    (iot-esp32/ml-edge/model.pkl) carregado uma vez no startup.
+
+# --------------------------------------------------------------------------- #
+#  Classificador de risco (Frente 4) — modelo ML treinado com fallback p/ regras
+# --------------------------------------------------------------------------- #
+# Por padrão aponta para iot-esp32/ml-edge/model.pkl no repositório. Em Docker
+# (onde o pkl pode não estar na imagem) defina a env ASTRO_MODEL_PATH ou deixe
+# cair no fallback de regras — a API nunca quebra por falta do modelo.
+_MODEL_PATH = Path(
+    os.getenv(
+        "ASTRO_MODEL_PATH",
+        Path(__file__).resolve().parent.parent / "iot-esp32" / "ml-edge" / "model.pkl",
+    )
+)
+# Bundle carregado uma vez no startup: {model, features, labels, sklearn_version}
+_model_bundle: dict | None = None
+
+
+def load_model() -> bool:
+    """Carrega o bundle do modelo de risco em memória (uma vez, no startup).
+
+    Retorna True se carregou; False se o arquivo não existe ou é incompatível —
+    nesse caso classify_risk() cai nas regras determinísticas, sem derrubar a API.
     """
+    global _model_bundle
+    try:
+        bundle = joblib.load(_MODEL_PATH)
+        _ = bundle["model"], bundle["features"]  # valida o formato do bundle
+        _model_bundle = bundle
+        return True
+    except Exception:  # arquivo ausente, versão incompatível, formato inesperado
+        _model_bundle = None
+        return False
+
+
+def _classify_risk_rules(hr: float, spo2: float, temp: float,
+                         radiation: float = 0.0, resp: float = 14.0) -> str:
+    """Regras determinísticas de risco — política da missão e FALLBACK do modelo.
+    É a fonte da verdade dos rótulos usados para treinar o modelo (Frente 4)."""
     if spo2 < 90 or hr > 140 or temp > 38.5 or radiation > 5.0 or resp > 28:
         return "risco"
     if spo2 < 94 or hr > 110 or temp > 37.8 or radiation > 1.0 or resp > 24 or resp < 8:
         return "fadiga"
     return "normal"
+
+
+def classify_risk(hr: float, spo2: float, temp: float,
+                  radiation: float = 0.0, resp: float = 14.0) -> str:
+    """Classifica o risco do tripulante em normal/fadiga/risco.
+
+    Usa o modelo scikit-learn da Frente 4 (iot-esp32/ml-edge/model.pkl) quando
+    carregado; senão usa as regras determinísticas (_classify_risk_rules).
+    """
+    if _model_bundle is None:
+        return _classify_risk_rules(hr, spo2, temp, radiation, resp)
+    values = {"hr": hr, "spo2": spo2, "temp": temp, "radiation": radiation, "resp": resp}
+    row = [[values[f] for f in _model_bundle["features"]]]  # respeita a ordem do bundle
+    try:
+        return str(_model_bundle["model"].predict(row)[0])
+    except Exception:  # qualquer falha de inferência → regra (nunca derruba a API)
+        return _classify_risk_rules(hr, spo2, temp, radiation, resp)
 
 
 def _log_alert(state: dict, new_risk: str) -> None:
@@ -208,6 +284,17 @@ def _simulate_step(state: dict) -> dict:
         radiation=round(max(0.0, state["radiation"] + random.uniform(-0.05, 0.08)), 2),
         battery=round(max(5.0, state["battery"] - random.uniform(0, 0.05)), 1),
     )
+
+
+def _build_crew_frame() -> list[dict]:
+    """Monta o frame da tripulação para o stream WS: o dado REAL do ESP32 tem
+    prioridade enquanto houver POST recente (< TTL); caso contrário, simula."""
+    now = time.monotonic()
+    frame = []
+    for state in list(_crew_state.values()):
+        fresh = now - _last_real.get(state["id"], -1e9) < REAL_TELEMETRY_TTL_S
+        frame.append(state if fresh else _simulate_step(state))
+    return frame
 
 
 # --------------------------------------------------------------------------- #
@@ -359,24 +446,110 @@ async def vision(image: UploadFile = File(...)) -> VisionResponse:
 # --------------------------------------------------------------------------- #
 #  Telemetria do ESP32  (Frente 4) — por tripulante, com mais sensores
 # --------------------------------------------------------------------------- #
+def _ingest_telemetry(crew_id, hr, spo2, temp, accel,
+                      resp=None, radiation=None, battery=None, ts=None) -> dict:
+    """Núcleo compartilhado pelo POST (JSON) e pelo GET (query params) de telemetria.
+
+    Atualiza o estado do tripulante, classifica o risco e marca a leitura como
+    REAL (prioridade sobre a simulação por TTL). Campos opcionais (resp,
+    radiation, battery) ausentes mantêm o valor atual.
+    """
+    if crew_id not in _crew_state:
+        raise HTTPException(status_code=404, detail=f"Tripulante '{crew_id}' não existe")
+    cur = _crew_state[crew_id]
+    state = apply_vitals(
+        crew_id,
+        hr=hr, spo2=spo2, temp=temp, accel=accel,
+        resp=resp if resp is not None else cur["resp"],
+        radiation=radiation if radiation is not None else cur["radiation"],
+        battery=battery if battery is not None else cur["battery"],
+        ts=ts,
+    )
+    _last_real[crew_id] = time.monotonic()  # marca como dado real recente (Frente 4)
+    return state
+
+
 @app.post("/api/telemetry", response_model=TelemetryAck)
 def telemetry(t: Telemetry) -> TelemetryAck:
-    """Recebe leitura do wearable ESP32 de um tripulante, classifica e guarda.
-
-    Campos opcionais (resp, radiation, battery) ausentes mantêm o valor atual.
-    """
-    if t.crew_id not in _crew_state:
-        raise HTTPException(status_code=404, detail=f"Tripulante '{t.crew_id}' não existe")
-    cur = _crew_state[t.crew_id]
-    state = apply_vitals(
-        t.crew_id,
-        hr=t.hr, spo2=t.spo2, temp=t.temp, accel=t.accel,
-        resp=t.resp if t.resp is not None else cur["resp"],
-        radiation=t.radiation if t.radiation is not None else cur["radiation"],
-        battery=t.battery if t.battery is not None else cur["battery"],
-        ts=t.ts,
+    """Recebe leitura do wearable ESP32 (JSON), classifica e guarda."""
+    state = _ingest_telemetry(
+        t.crew_id, t.hr, t.spo2, t.temp, t.accel,
+        resp=t.resp, radiation=t.radiation, battery=t.battery, ts=t.ts,
     )
     return TelemetryAck(status="ok", crew_id=t.crew_id, risk_level=state["risk_level"])
+
+
+@app.get("/api/telemetry", response_model=TelemetryAck)
+def telemetry_get(
+    crew_id: str = "cmdr",
+    hr: float = Query(..., description="Frequência cardíaca (bpm)"),
+    spo2: float = Query(..., description="Saturação de oxigênio (%)"),
+    temp: float = Query(..., description="Temperatura corporal (°C)"),
+    accel: float = Query(0.0, description="Magnitude de aceleração (g)"),
+    resp: Optional[float] = Query(None, description="Frequência respiratória (rpm)"),
+    radiation: Optional[float] = Query(None, description="Dose de radiação (µSv/h)"),
+    battery: Optional[float] = Query(None, description="Bateria do wearable (%)"),
+    ts: Optional[str] = Query(None, description="Timestamp ISO-8601"),
+) -> TelemetryAck:
+    """Variante GET para a simulação Wokwi.
+
+    O ESP32 envia a telemetria via WiFi + HTTP GET (mesmo padrão dos projetos
+    FarmTech): `/api/telemetry?crew_id=cmdr&hr=..&spo2=..&temp=..&accel=..&ts=..`.
+    Mesma lógica do POST — existe porque o HTTPClient do firmware manda os dados
+    como query params, e não como corpo JSON.
+    """
+    state = _ingest_telemetry(
+        crew_id, hr, spo2, temp, accel,
+        resp=resp, radiation=radiation, battery=battery, ts=ts,
+    )
+    return TelemetryAck(status="ok", crew_id=crew_id, risk_level=state["risk_level"])
+
+
+# --------------------------------------------------------------------------- #
+#  "Monitor serial" da simulação espelhado por HTTP (Frente 4)
+#  O firmware faz GET /terminal_log?line=<linha> a cada evento do Serial. Daí dá
+#  para acompanhar o monitor serial do Wokwi fora do simulador: /terminal_logs
+#  (JSON) para um snapshot e /terminal_stream (SSE) para o stream ao vivo.
+# --------------------------------------------------------------------------- #
+@app.get("/terminal_log")
+def terminal_log(line: str = "") -> PlainTextResponse:
+    """Recebe uma linha do monitor serial espelhada pelo ESP32 (query `line`)."""
+    if not line:
+        return PlainTextResponse("MISSING_LINE", status_code=400)
+    entry = f"[{datetime.now().strftime('%H:%M:%S')}] {line}"
+    with _terminal_lock:
+        _terminal_log.append(entry)
+    return PlainTextResponse("OK")
+
+
+@app.get("/terminal_logs")
+def terminal_logs(limit: int = 500) -> dict:
+    """Últimas linhas espelhadas do monitor serial da simulação (snapshot JSON)."""
+    with _terminal_lock:
+        lines = list(_terminal_log)[-limit:]
+    return {"lines": lines, "count": len(lines)}
+
+
+@app.get("/terminal_stream")
+async def terminal_stream() -> StreamingResponse:
+    """Stream SSE do monitor serial espelhado — abra no navegador p/ ver ao vivo."""
+
+    async def gen():
+        last = 0
+        while True:
+            with _terminal_lock:
+                lines = list(_terminal_log)
+            if len(lines) > last:
+                for ln in lines[last:]:
+                    yield f"data: {ln}\n\n"
+                last = len(lines)
+            await asyncio.sleep(0.5)
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.websocket("/ws/telemetry")
@@ -384,13 +557,13 @@ async def ws_telemetry(ws: WebSocket) -> None:
     """Stream de telemetria de TODA a tripulação em tempo real (1 Hz).
 
     Envia `{ ts, crew: [ {id, name, role, hr, spo2, temp, resp, radiation,
-    battery, risk_level}, ... ] }`. Simula leituras enquanto não há ESP32 real.
+    battery, risk_level}, ... ] }`. Para cada tripulante, reenvia a telemetria
+    REAL do ESP32 se houver POST recente (< TTL); caso contrário, simula.
     """
     await ws.accept()
     try:
         while True:
-            crew_frame = [_simulate_step(state) for state in list(_crew_state.values())]
-            await ws.send_json({"ts": _now(), "crew": crew_frame})
+            await ws.send_json({"ts": _now(), "crew": _build_crew_frame()})
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         return

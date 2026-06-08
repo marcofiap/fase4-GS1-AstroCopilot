@@ -1,0 +1,15 @@
+# Wokwi para VS Code — liga o firmware compilado pelo PlatformIO ao diagram.json.
+# Docs: https://docs.wokwi.com/vscode/getting-started
+#
+# Os caminhos são relativos a este arquivo (raiz do projeto PlatformIO, iot-esp32/).
+# Compile antes com `pio run`; a extensão lê o .bin/.elf de .pio/build/<env>/.
+# O diagram.json fica nesta mesma pasta (a extensão o procura ao lado do wokwi.toml).
+#
+# O ESP32 simulado conecta no WiFi `Wokwi-GUEST` e envia a telemetria por HTTP GET
+# direto ao backend (http://<host>:8000/api/telemetry) — ver src/firmware.ino.
+# Não há mais ponte serial (rfc2217ServerPort foi removido): a extensão Wokwi do
+# VS Code dá ao ESP32 acesso de rede ao host (use o IP da sua LAN em SERVIDORES[]).
+[wokwi]
+version = 1
+firmware = ".pio/build/esp32doit-devkit-v1/firmware.bin"
+elf = ".pio/build/esp32doit-devkit-v1/firmware.elf"

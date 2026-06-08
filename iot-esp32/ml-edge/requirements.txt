@@ -1,0 +1,7 @@
+# Treino do modelo de risco (Frente 4 — Edge ML)
+# scikit-learn PINADO: o pickle (model.pkl) precisa da MESMA versão major.minor
+# no backend que carrega o modelo. Mantenha igual em backend/requirements.txt.
+numpy==2.2.*
+scikit-learn==1.6.*
+joblib==1.5.*
+matplotlib==3.*   # opcional — só para a matriz de confusão em PNG

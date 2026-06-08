@@ -72,3 +72,20 @@ def test_vision_mock(client):
     r = client.post("/api/vision", files={"image": ("p.png", b"fakebytes", "image/png")})
     assert r.status_code == 200
     assert "objects" in r.json()
+
+
+def test_telemetria_real_tem_prioridade_no_frame(client):
+    # Telemetria REAL (POST do ESP32) deve aparecer no frame do stream, sem ser
+    # sobrescrita pela simulação (Frente 4). Testa o helper direto (sem WS).
+    import main
+
+    r = client.post(
+        "/api/telemetry",
+        json={"crew_id": "cmdr", "hr": 175, "spo2": 82, "temp": 37.0, "accel": 0.3},
+    )
+    assert r.status_code == 200
+
+    frame = main._build_crew_frame()
+    cmdr = next(c for c in frame if c["id"] == "cmdr")
+    assert cmdr["hr"] == 175            # valor REAL, não o simulado (~72)
+    assert cmdr["risk_level"] == "risco"
