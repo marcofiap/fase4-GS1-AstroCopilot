@@ -114,6 +114,8 @@ Mesmo sem nenhum estímulo visual válido, o sistema intercepta o estado nulo gr
   "ocr_text": "",
   "description": "Nenhum componente ou dado legível identificado na captura da câmera."
 }
+```
+
 ## Escopo de Entrega
 
 ### MVP

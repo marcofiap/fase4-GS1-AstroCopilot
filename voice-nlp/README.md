@@ -173,7 +173,7 @@ No `.env` da raiz:
 Aqui está um resumo de quais serviços rodam localmente e quais dependem da internet:
 
 1. **Processamento do LLM (Texto ➔ Texto)**:
-   * **Serviço**: Claude 3.5 Haiku via AWS Bedrock.
+   * **Serviço**: Claude Haiku 4.5 via AWS Bedrock.
    * **Execução**: **Online** (consome tokens e requer a chave Bedrock).
 
 2. **Transcrição de Áudio (STT - Áudio ➔ Texto)**:

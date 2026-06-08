@@ -30,7 +30,7 @@ O **AstroCopilot** é um copiloto de bordo para tripulações espaciais:
 - **RAG + LLM** — consulta manuais técnicos reais (NASA/ESA) e responde com fonte citada.
 - **Visão** — o astronauta mostra um painel/componente pela câmera; o copiloto identifica e lê (OCR).
 - **IoT + ML** — wearable ESP32 monitora sinais vitais em tempo real; um modelo de ML classifica risco.
-- **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo de 3 tripulantes, copiloto por voz (wake word **"Astra"**) ou texto, análise de imagem e log de alertas.
+- **Dashboard** — centro de controle web (React + Vite) com telemetria ao vivo de 3 tripulantes, copiloto por voz (wake word **"Astro"**) ou texto, análise de imagem e log de alertas.
 
 ## Arquitetura
 
@@ -63,8 +63,8 @@ Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
 ## Tecnologias
 
 `Python` · `FastAPI` · `WebSocket` · `Strands Agents` · `ChromaDB` · `AWS Bedrock (Claude)` ·
-`Whisper` · `gTTS` · `PyTorch` · `YOLOv8/CLIP` · `Tesseract` · `ESP32` · `Wokwi` · `LoRa/BLE` ·
-`scikit-learn` · `React` · `Vite` · `TailwindCSS` · `Recharts` · `GitHub Actions` · `Docker` · `SQLite`
+`faster-whisper` · `Edge TTS` · `gTTS` · `YOLOv8` · `Tesseract` · `OpenCV` · `ESP32` · `Wokwi` · `LoRa/BLE` ·
+`scikit-learn` · `React` · `Vite` · `Recharts` · `GitHub Actions` · `Docker` · `SQLite`
 
 ## Configuração de ambiente
 
