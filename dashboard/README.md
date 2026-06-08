@@ -27,17 +27,25 @@ npm run dev                 # http://localhost:5173
 
 ## Arquivos
 - `src/App.jsx` — rotas da aplicação
-- `src/pages/Dashboard.jsx` — painel principal (telemetria + copiloto)
-- `src/pages/VisionPage.jsx` — página de análise de imagem
-- `src/pages/AlertsPage.jsx` — página de log de alertas
-- `src/pages/AuditPage.jsx` — página da trilha de auditoria do agente
-- `src/hooks/useTelemetry.js` — conexão WebSocket `/ws/telemetry`
-- `src/hooks/useSpeech.js` — voz no navegador (STT/TTS + wake word "Astro")
-- `src/components/TelemetryPanel.jsx` — cards da tripulação + gráficos (Recharts: linha de FC e área de radiação)
-- `src/components/ChatPanel.jsx` — chat com o agente (`/api/agent/query`) + entrada/saída de voz
-- `src/components/VisionPanel.jsx` — upload de imagem (`/api/vision`)
-- `src/components/AlertLogPanel.jsx` — lista de alertas (`/api/alerts`)
-- `src/api.js` — cliente da API
+- `src/api.js` — cliente da API (agent, voz, TTS, visão, alertas, auditoria, gravações)
+- **Páginas** (`src/pages/`)
+  - `Dashboard.jsx` — painel principal (telemetria + copiloto)
+  - `VisionPage.jsx` — página de análise de imagem
+  - `AlertsPage.jsx` — página de log de alertas
+  - `AuditPage.jsx` — página da trilha de auditoria do agente
+- **Hooks** (`src/hooks/`)
+  - `useTelemetry.js` — conexão WebSocket `/ws/telemetry`
+  - `useSpeech.js` — voz no navegador (wake word "Astro", reprodução do áudio do servidor)
+  - `useMicLevel.js` — nível do microfone (feedback visual ao gravar)
+- **Componentes** (`src/components/`)
+  - `TelemetryPanel.jsx` — cards da tripulação + gráficos (Recharts: linha de FC e área de radiação)
+  - `ChatPanel.jsx` — chat com o agente (`/api/agent/query`) + entrada/saída de voz e gravação
+  - `ChatDebugPanel.jsx` — painel de depuração/opções avançadas de voz
+  - `MicFeedback.jsx` — indicador visual do microfone durante a gravação
+  - `VisionPanel.jsx` — upload de imagem (`/api/vision`)
+  - `AlertLogPanel.jsx` — lista de alertas (`/api/alerts`)
+- **Config** (`src/config/`)
+  - `astroVoices.js` — perfis de voz do Astro (vozes neurais PT-BR)
 
 ## Funcionalidades
 - **Telemetria ao vivo** de 3 tripulantes (WebSocket `/ws/telemetry` + Recharts: FC, SpO₂, temperatura, respiração, radiação, bateria).
