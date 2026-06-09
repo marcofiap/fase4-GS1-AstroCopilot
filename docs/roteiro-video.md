@@ -76,10 +76,15 @@
 ---
 
 ### 🎬 Cena 5 — Visão Computacional (2:55–3:30)
-**Mostrar:** página **Visão (imagem)** → enviar uma foto de painel.
+**Mostrar:** página **Visão (imagem)** → enviar **`vision/test_images/painel_demo.png`**
+(display de cabine com texto legível — melhor para a demo que uma foto poluída).
 > "Se um instrumento falha, o astronauta mostra o painel pela câmera. A visão
-> computacional detecta os componentes com YOLO e faz **OCR** dos números e alertas
-> do display, devolvendo a leitura para o copiloto interpretar."
+> computacional faz **OCR** do display e lê as leituras — O2, CO2, pressão,
+> temperatura — e ainda **detecta a anomalia**: repare que ele sinalizou o
+> *ALERTA: PRESSÃO BAIXA* automaticamente na descrição."
+
+> 💡 O OCR lê melhor displays com texto claro. A `painel_demo.png` já vem pronta;
+> evite fotos de painéis industriais poluídos (o modelo base gera ruído).
 
 ---
 

@@ -12,9 +12,10 @@ import pytesseract
 from PIL import Image
 
 class PanelOCR:
-    def __init__(self, lang: str = "eng", psm: int = 6):
+    def __init__(self, lang: str = "eng", psm: int = 4):
         """
-        psm 6: Assume um bloco de texto uniforme. Ideal para displays de dados.
+        psm 4: Assume uma coluna de texto com tamanhos variados — ideal para
+        painéis/displays com várias linhas (PRESS, TEMP, ALERTA...).
         """
         self.lang = lang
         self.psm = psm
@@ -39,12 +40,13 @@ class PanelOCR:
         # 2. Redimensiona para aumentar a nitidez dos caracteres pequenos (Upscaling)
         gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
-        # 3. Limpeza de ruído e binarização adaptativa (ótimo para displays LED/LCD)
+        # 3. Limpeza de ruído + binarização de Otsu INVERTIDA: displays de cabine
+        # são texto claro em fundo escuro; invertendo, o Tesseract recebe texto
+        # preto em fundo branco (como prefere), melhorando muito a leitura.
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-        binary = cv2.adaptiveThreshold(
-            blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-            cv2.THRESH_BINARY, 11, 2
-        )
+        binary = cv2.threshold(
+            blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        )[1]
         return binary
 
     def extract_text(self, image: Image.Image | np.ndarray, region: Tuple[int, int, int, int] | None = None) -> str:

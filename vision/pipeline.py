@@ -46,33 +46,33 @@ class VisionPipeline:
         # Extrai as classes detectadas de forma segura
         objects = [d.get("class", "desconhecido") for d in detections if isinstance(d, dict) and "class" in d]
 
-        # 2. Determina a região de interesse (ROI) para rodar o OCR de forma segura
-        ocr_texts = []
-        
+        # 2. OCR: lê o PAINEL INTEIRO primeiro (melhor para displays com vários
+        # dados) e complementa com o texto das regiões detectadas, sem duplicar.
+        ocr_parts = []
+        try:
+            full_text = (self.ocr.extract_text(image) or "").strip()
+        except Exception:
+            full_text = ""
+        if full_text:
+            ocr_parts.append(full_text)
+
         for det in detections:
             if not isinstance(det, dict):
                 continue
-                
+
             bbox = det.get("box") or det.get("bbox")
-            
-            # Se encontrar coordenadas válidas da caixa, faz o recorte para o OCR
+            # OCR adicional na caixa detectada (display específico), se houver
             if bbox and len(bbox) == 4:
                 try:
                     bbox_int = (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
-                    text = self.ocr.extract_text(image, region=bbox_int)
-                    if text and text.strip():
-                        ocr_texts.append(text.strip())
+                    text = (self.ocr.extract_text(image, region=bbox_int) or "").strip()
+                    # só adiciona se trouxer algo NOVO (não repete o da imagem cheia)
+                    if text and text not in full_text:
+                        ocr_parts.append(text)
                 except Exception:
                     continue  # Se falhar o OCR de uma caixa, pula para a próxima
 
-        # Fallback Estratégico: Se não achou caixas ou o OCR das ROIs veio vazio, lê a imagem cheia
-        if ocr_texts:
-            ocr_text = " | ".join(ocr_texts)
-        else:
-            try:
-                ocr_text = self.ocr.extract_text(image)
-            except Exception:
-                ocr_text = ""
+        ocr_text = " | ".join(ocr_parts)
 
         # 3. Geração da descrição dinâmica baseada em regras de contexto de IA
         description = self._build_description(objects, ocr_text)
