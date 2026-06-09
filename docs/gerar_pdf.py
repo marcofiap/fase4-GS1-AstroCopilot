@@ -114,9 +114,9 @@ story.append(Paragraph("Global Solution 2026.1 — FIAP · 2º ano de Inteligên
                        ParagraphStyle("ST2", parent=BODY, fontSize=10.5, alignment=TA_CENTER,
                                       textColor=MUTED, spaceAfter=16)))
 
-# >>> Para concorrer ao pódio, descomente a linha abaixo (e diga no vídeo):
-# story.append(Paragraph('<b>QUERO CONCORRER</b>', ParagraphStyle(
-#     "QC", parent=BODY, fontSize=13, alignment=TA_CENTER, textColor=colors.red, spaceAfter=16)))
+# Concorrendo ao pódio (dito também nos primeiros segundos do vídeo):
+story.append(Paragraph('<b>QUERO CONCORRER</b>', ParagraphStyle(
+    "QC", parent=BODY, fontSize=13, alignment=TA_CENTER, textColor=colors.red, spaceAfter=16)))
 
 integrantes = [
     ["Integrante", "RM", "Frente"],
@@ -350,7 +350,7 @@ p('Já a <b>computação neuromórfica</b> — chips que imitam o funcionamento 
 # --------------------------------------------------------------------------- #
 h1("6. Repositório, Execução e Vídeo")
 p('<b>Repositório:</b> https://github.com/marcofiap/fase4-GS1-AstroCopilot')
-p('<b>Vídeo demonstrativo (YouTube — Não listado):</b> _____ (inserir link antes da entrega)')
+p('<b>Vídeo demonstrativo (YouTube — Não listado):</b> https://youtu.be/b4ixJh4m3_o')
 h2("Como executar")
 story.extend([Preformatted(
     "# Opção 1 — Docker (sobe backend + dashboard)\n"

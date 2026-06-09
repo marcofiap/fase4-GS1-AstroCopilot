@@ -3,8 +3,7 @@
 > **Global Solution 2026.1 — FIAP | 2º ano de Inteligência Artificial (2TIAO)**
 > Prova de Conceito (POC) integrando IA Generativa, RAG, Visão Computacional, NLP/Voz, IoT (ESP32) e Machine Learning.
 
-<!-- Para concorrer ao pódio, descomente a linha abaixo e diga "QUERO CONCORRER" no início do vídeo -->
-<!-- **QUERO CONCORRER** -->
+**QUERO CONCORRER**
 
 ---
 
@@ -128,8 +127,8 @@ Cada frente tem instruções específicas no `README.md` da sua pasta.
 ## Links de entrega
 
 - PDF da entrega: `docs/GS-AstroCopilot.pdf`
-- Vídeo (YouTube — Não listado): _adicionar link_
-- Repositório: _adicionar link_
+- Vídeo (YouTube — Não listado): https://youtu.be/b4ixJh4m3_o
+- Repositório: https://github.com/marcofiap/fase4-GS1-AstroCopilot
 
 ## Licença
 
