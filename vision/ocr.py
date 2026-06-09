@@ -19,7 +19,14 @@ class PanelOCR:
         self.lang = lang
         self.psm = psm
 
-        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+        # Caminho do Tesseract: usa o executável do Windows se existir; caso
+        # contrário (Mac/Linux) confia no PATH. Pode sobrescrever com a env
+        # TESSERACT_CMD.
+        import os
+        _win = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+        _cmd = os.getenv("TESSERACT_CMD") or (_win if Path(_win).exists() else "")
+        if _cmd:
+            pytesseract.pytesseract.tesseract_cmd = _cmd
 
     def preprocess(self, image: np.ndarray) -> np.ndarray:
         """ Pipeline de tratamento de imagem para melhorar a assertividade do OCR """
