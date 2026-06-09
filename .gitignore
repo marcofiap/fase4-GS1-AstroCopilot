@@ -52,3 +52,6 @@ Thumbs.db
 # Lixo de ferramentas locais (Cursor/terminais)
 terminals/
 pyrightconfig.json
+
+# Log local do launcher
+backend/backend.log
