@@ -243,6 +243,15 @@ p('A imagem enviada pela tripulação passa por <b>detecção de objetos (YOLOv8
   '<b>OCR (Tesseract)</b> para ler números e alertas do painel. O pipeline devolve o contrato '
   '<font face="Courier">{objects, ocr_text, description}</font>, com tratamento de erro robusto.')
 story.extend(code("vision/pipeline.py", read_lines("vision/pipeline.py", 21, 49)))
+if (DIAG / "visao.png").exists():
+    _v = Image(str(DIAG / "visao.png"))
+    _v._restrictSize(16 * cm, 8 * cm)
+    _v.hAlign = "CENTER"
+    story.append(_v)
+    story.append(Paragraph(
+        "Figura 3 — Visão: OCR lê as leituras do painel e detecta a anomalia (ALERTA) automaticamente.",
+        CAP))
+    story.append(Spacer(1, 6))
 
 # 2.6 Frente 4
 h2("2.6 Frente 4 — IoT ESP32 + Edge + Machine Learning")
@@ -268,8 +277,8 @@ p('O centro de controle web reúne, em tema "mission control", a telemetria ao v
   'com entrada por voz (wake word "Astro") e por texto. Páginas dedicadas trazem a análise de '
   'imagem, o log de alertas e a trilha de auditoria.')
 for fname, cap in [
-    ("dashboard.png", "Figura 3 — Dashboard: telemetria ao vivo de 3 tripulantes + Copiloto (RAG)."),
-    ("auditoria.png", "Figura 4 — Trilha de auditoria: cada decisão do agente é registrada (governança)."),
+    ("dashboard.png", "Figura 4 — Dashboard: telemetria ao vivo de 3 tripulantes + Copiloto (RAG)."),
+    ("auditoria.png", "Figura 5 — Trilha de auditoria: cada decisão do agente é registrada (governança)."),
 ]:
     if (DIAG / fname).exists():
         im = Image(str(DIAG / fname))
