@@ -9,7 +9,9 @@
 - [ ] *(ou manual)* Backend: `cd backend` → ativar venv (`source .venv/bin/activate` no Mac/Linux, `source .venv/Scripts/activate` no Windows) → `uvicorn main:app --reload`
 - [ ] *(ou manual)* Dashboard: `cd dashboard && npm run dev` → http://localhost:5173 (Chrome/Edge)
 - [ ] Base RAG e `model.pkl` já gerados (prontos na máquina)
-- [ ] Microfone OK para demonstrar a voz "Astro"
+- [ ] **Tesseract** instalado (para o OCR da Cena 5 — Windows: `winget install UB-Mannheim.TesseractOCR`)
+- [ ] Microfone OK e **"Voz: ON"** ativo no Copiloto (para ouvir a resposta)
+- [ ] Navegador **Chrome ou Edge** (a wake word usa o reconhecimento de voz do navegador)
 - [ ] (Opcional) Wokwi aberto para mostrar o ESP32
 - [ ] Gravar em 1080p, tela limpa (fechar abas/notificações)
 
@@ -51,15 +53,23 @@
 
 **Mostrar (rápido):** Wokwi rodando OU um card mudando para FADIGA, e a página **Log de Alertas**.
 
+> 💡 Honestidade: se **não** abrir o Wokwi, a telemetria exibida é **simulada pelo
+> backend** (mesmo contrato e classificação de risco do ESP32 real). Se quiser mostrar
+> o hardware enviando de verdade, abra o Wokwi e o `/terminal_stream`. Ambos valem.
+
 ---
 
 ### 🎬 Cena 4 — Copiloto por voz + RAG (1:45–2:55) · **núcleo da demo**
-**Mostrar:** o card Copiloto. Clicar em **"Astro"** (ativa a escuta por voz).
+**Mostrar:** o card Copiloto. Clicar em **"Astro On"** (ativa a escuta por voz) e garantir **"Voz: ON"**.
 > "O coração do projeto é o copiloto. O astronauta fala usando a wake word 'Astro' —
-> pensado também para acessibilidade, já que ele ouve a resposta em voz. O áudio é
-> transcrito pelo Whisper e respondido com áudio de volta."
+> pensado também para acessibilidade, já que ele responde por voz. O reconhecimento
+> da fala roda no próprio navegador; a resposta é sintetizada em áudio de volta."
 
 **Falar no microfone:** **"Astro, como agir em caso de despressurização da cabine?"**
+
+> 💡 Há também o modo de **gravar/enviar um áudio** (botões "Piloto 1/2/3" e "Gravar voz"):
+> aí a transcrição é feita no **servidor com o Whisper**. Se quiser mostrar o Whisper
+> explicitamente, use esse caminho; para a demo "mãos livres", a wake word basta.
 
 **Mostrar:** a resposta aparecendo e sendo lida em voz alta.
 > "Reparem na resposta: ela vem com um **procedimento real** — colocar o capacete,
@@ -89,12 +99,16 @@
 ---
 
 ### 🎬 Cena 6 — Governança e DevOps (3:30–4:05)
-**Mostrar:** página **Auditoria** + terminal com `docker compose up` e os testes passando.
+**Mostrar:** página **Auditoria** + terminal rodando `pytest` (verde) + a aba **Actions** do GitHub.
 > "Para IA em ambiente crítico, governança é indispensável: **toda** decisão do agente
 > fica registrada numa trilha de auditoria — pergunta, resposta, fontes e horário. E do
-> lado de engenharia: a plataforma inteira sobe com **um** comando, `docker compose up`,
-> tem **integração contínua** no GitHub Actions e **37 testes automatizados**. Tudo
-> testado e operacional."
+> lado de engenharia: a stack sobe com **um** comando (`iniciar.bat` no Windows ou
+> `./iniciar.sh` no Mac/Linux), temos **integração contínua** no GitHub Actions e
+> **42 testes automatizados** rodando a cada push. Tudo testado e operacional."
+
+> 💡 Para mostrar os testes: no terminal, `cd backend` → ativar o venv → `python -m pytest`
+> (mostra `42 passed`). Tem também `Dockerfile`/`docker-compose` no repo, mas para a
+> demo o `iniciar` é mais simples — evite prometer `docker compose` no vídeo.
 
 ---
 
