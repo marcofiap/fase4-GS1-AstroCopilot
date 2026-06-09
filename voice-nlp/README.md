@@ -70,7 +70,15 @@ Usa um agente mock. Para testar com RAG real, use a API abaixo.
 
 ## Como rodar backend + dashboard (proximo dev)
 
-A Frente 2 roda **dentro do backend** (`backend/main.py` importa `voice-nlp/pipeline.py`). O dashboard (Frente 5) consome a API. Use **dois terminais**.
+A Frente 2 roda **dentro do backend** (`backend/main.py` importa `voice-nlp/pipeline.py`). O dashboard (Frente 5) consome a API.
+
+> 💡 **Atalho multiplataforma:** da raiz do projeto, `./iniciar.sh` (Mac/Linux) ou
+> duplo-clique em `iniciar.bat` (Windows) sobe backend + dashboard de uma vez.
+> Os comandos manuais abaixo (em **dois terminais**) continuam valendo.
+>
+> Ativação do venv por SO: `source .venv/bin/activate` (Mac/Linux) ·
+> `.\.venv\Scripts\Activate.ps1` (Windows PowerShell) ·
+> `source .venv/Scripts/activate` (Windows Git Bash).
 
 ### Terminal 1 — API (obrigatorio)
 

@@ -77,9 +77,11 @@ cp .env.example .env
 
 ## Como executar (início rápido)
 
-> ⚡ **Atalho (Windows):** dê **duplo-clique em `iniciar.bat`** — ele sobe o backend
-> (ativando o venv + ffmpeg) e o dashboard em duas janelas. Depois abra
-> http://localhost:5173 no Chrome/Edge. As opções manuais abaixo continuam valendo.
+> ⚡ **Atalho (sobe backend + dashboard juntos):**
+> - **Windows:** duplo-clique em **`iniciar.bat`**
+> - **Mac / Linux:** `./iniciar.sh` (no terminal, na raiz do projeto)
+>
+> Depois abra http://localhost:5173 no Chrome/Edge. As opções manuais abaixo continuam valendo.
 
 O backend já roda com **respostas mock**, permitindo que todas as frentes trabalhem em paralelo.
 
@@ -98,7 +100,9 @@ Para parar: `docker compose down`. O SQLite (alertas + auditoria) persiste no vo
 ```bash
 # Terminal 1 — Backend (Frente 5), destrava todas as demais
 cd backend
-python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash
+python -m venv .venv
+source .venv/bin/activate        # Mac/Linux
+# source .venv/Scripts/activate  # Windows (Git Bash)
 pip install -r requirements.txt
 uvicorn main:app --reload                                # http://localhost:8000/docs
 ```

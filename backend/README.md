@@ -8,10 +8,14 @@ permitindo que as demais frentes e o dashboard trabalhem em paralelo desde o inÃ
 
 ## Como rodar
 
+> ðŸ’¡ Atalho (sobe backend + dashboard juntos, da raiz do projeto): `./iniciar.sh`
+> (Mac/Linux) ou duplo-clique em `iniciar.bat` (Windows).
+
 ```bash
 cd backend
 python -m venv .venv
-source .venv/Scripts/activate      # Windows (Git Bash) | Linux/Mac: source .venv/bin/activate
+source .venv/bin/activate          # Mac/Linux
+# source .venv/Scripts/activate    # Windows (Git Bash)
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
