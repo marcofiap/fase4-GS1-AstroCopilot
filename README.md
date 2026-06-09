@@ -77,6 +77,10 @@ cp .env.example .env
 
 ## Como executar (início rápido)
 
+> ⚡ **Atalho (Windows):** dê **duplo-clique em `iniciar.bat`** — ele sobe o backend
+> (ativando o venv + ffmpeg) e o dashboard em duas janelas. Depois abra
+> http://localhost:5173 no Chrome/Edge. As opções manuais abaixo continuam valendo.
+
 O backend já roda com **respostas mock**, permitindo que todas as frentes trabalhem em paralelo.
 
 ### Opção 1 — Docker (recomendado: sobe tudo com um comando)

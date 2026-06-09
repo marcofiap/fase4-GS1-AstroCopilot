@@ -5,8 +5,9 @@
 > **Regra do pódio:** dizer **"QUERO CONCORRER"** + nome do grupo nos primeiros segundos.
 
 ## Antes de gravar (checklist técnico)
-- [ ] Backend no ar: `cd backend && uvicorn main:app --reload` (com `ffmpeg` no PATH e `.env` preenchido)
-- [ ] Dashboard no ar: `cd dashboard && npm run dev` → http://localhost:5173 (Chrome/Edge)
+- [ ] **Forma fácil:** duplo-clique em **`iniciar.bat`** (sobe backend + dashboard automaticamente)
+- [ ] *(ou manual)* Backend: `cd backend` → `source .venv/Scripts/activate` → `uvicorn main:app --reload`
+- [ ] *(ou manual)* Dashboard: `cd dashboard && npm run dev` → http://localhost:5173 (Chrome/Edge)
 - [ ] Base RAG e `model.pkl` já gerados (prontos na máquina)
 - [ ] Microfone OK para demonstrar a voz "Astro"
 - [ ] (Opcional) Wokwi aberto para mostrar o ESP32
